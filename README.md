@@ -9,6 +9,7 @@ The first release supports multiple local workspaces plus GitHub and Jira Cloud 
 - [Product and UX specification](docs/PRODUCT.md)
 - [Electron architecture and data design](docs/ARCHITECTURE.md)
 - [Implementation plan and validation](docs/IMPLEMENTATION.md)
+- [CI/CD pipeline and release guide](docs/CI_CD.md)
 
 ## V1 outcome
 
@@ -21,4 +22,3 @@ A developer can create named workspaces such as `Acme Platform` and `Personal OS
 3. Local first: provider content is synced directly from the Mac and cached only locally.
 4. Explicit trust: scopes, refresh time, integration health, and data removal are visible.
 5. Few excellent integrations before many shallow ones.
-

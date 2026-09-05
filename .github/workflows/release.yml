@@ -1,0 +1,76 @@
+name: Release macOS
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to attach assets to (e.g. v0.1.0). If empty, artifacts are uploaded to the workflow run only.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-mac:
+    name: Build macOS DMG (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: arm64
+            os: macos-latest
+          - target: x64
+            os: macos-13
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundles
+        run: npm run build
+
+      - name: Package macOS DMG
+        env:
+          # Apple code signing certificate & password (optional)
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # Prevent keychain lookup when no certificate secret is provided
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' }}
+          # Apple notarization credentials (optional, consumed by scripts/notarize.cjs)
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx electron-builder --mac dmg --${{ matrix.target }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: devbox-${{ matrix.target }}-dmg
+          path: |
+            dist/*.dmg
+            dist/*.dmg.blockmap
+          if-no-files-found: error
+
+      - name: Upload DMG to GitHub Release
+        if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: |
+          echo "Uploading packaged artifacts to GitHub Release: $TARGET_TAG"
+          gh release upload "$TARGET_TAG" dist/*.dmg dist/*.dmg.blockmap --clobber
