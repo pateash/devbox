@@ -48,6 +48,7 @@
   "build": {
     "appId": "com.devbox.app",
     "productName": "DevBox",
+    "icon": "resources/devbox-icon.png",
     "mac": { "target": ["dmg"], "category": "public.app-category.developer-tools", "hardenedRuntime": true },
     "dmg": { "sign": false },
     "afterSign": "./scripts/notarize.cjs"
