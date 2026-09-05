@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Electron / electron-vite build and packaging output
+out/
+dist/
+release/
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Local application data and SQLite sidecar files
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Logs and diagnostic output
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
