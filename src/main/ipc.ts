@@ -25,6 +25,7 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   ipcMain.handle('github:workItems', (_e, workspaceId) => store.workItems(id.parse(workspaceId)))
   ipcMain.handle('backups:status', () => store.backupStatus())
   ipcMain.handle('backups:repositories', () => github.backupRepositories())
+  ipcMain.handle('backups:connectToken', (_e, token) => github.connectBackupToken(z.string().min(1).max(4096).parse(token)))
   ipcMain.handle('backups:configure', async (_e, repositoryId, acknowledgement) => { if(acknowledgement!==true) throw new Error('Acknowledge that this backup is unencrypted.'); const result=await github.configureBackup(backupRepositoryId.parse(repositoryId)); changed(); return result })
   ipcMain.handle('backups:run', async () => { const result=await github.backupNow(); changed(); return result })
   ipcMain.handle('backups:restoreLatest', async (_e, restoreConfirmation) => { if(restoreConfirmation!=='RESTORE') throw new Error('Type RESTORE to replace local DevBox data.'); await github.restoreLatest(); changed() })

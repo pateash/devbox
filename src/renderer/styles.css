@@ -34,6 +34,31 @@ button:focus-visible, input:focus-visible { outline: 3px solid #c87fd0; outline-
 :root:not([data-theme="light"]) .repository-search input { color: #f2f2f2; }
 :root:not([data-theme="light"]) .repository-options { border-color: #3d424a; background: #1a1d21; }
 :root:not([data-theme="light"]) .repository-options label { border-color: #30343b; color: #e7e9ec; }
+:root:not([data-theme="light"]) .work-row { border-color: #30343b; }
+:root:not([data-theme="light"]) .row-source, :root:not([data-theme="light"]) .provider-icon, :root:not([data-theme="light"]) .catalog-icon { background: #30263a; color: #d994df; }
+:root:not([data-theme="light"]) .row-copy p, :root:not([data-theme="light"]) .row-copy span, :root:not([data-theme="light"]) .empty-state p, :root:not([data-theme="light"]) .integration-empty p, :root:not([data-theme="light"]) .planned-tool p { color: #b9bdc5; }
+:root:not([data-theme="light"]) .row-copy h3, :root:not([data-theme="light"]) .empty-state h2, :root:not([data-theme="light"]) .integration-empty h2, :root:not([data-theme="light"]) .planned-tool h2 { color: #f2f2f2; }
+:root:not([data-theme="light"]) .token-form { border-color: #383c43; }
+:root:not([data-theme="light"]) .token-form label { color: #e7e9ec; }
+:root:not([data-theme="light"]) .token-form input, :root:not([data-theme="light"]) .backup-config select, :root:not([data-theme="light"]) .backup-restore input { border-color: #3d424a; background: #1a1d21; color: #f2f2f2; }
+:root:not([data-theme="light"]) .token-form p { color: #b9bdc5; }
+:root:not([data-theme="light"]) .settings-view > div, :root:not([data-theme="light"]) .backup-restore { border-color: #383c43 !important; }
+:root:not([data-theme="light"]) .backup-ack { color: #e7e9ec; }
+:root:not([data-theme="light"]) .backup-status { background: #1a1d21; }
+:root:not([data-theme="light"]) .backup-status span { color: #b9bdc5; }
+:root:not([data-theme="light"]) .directory-title h1, :root:not([data-theme="light"]) .directory-section-heading h2 { color: #f2f2f2; }
+:root:not([data-theme="light"]) .directory-title p, :root:not([data-theme="light"]) .directory-filters label, :root:not([data-theme="light"]) .catalog-card-copy p, :root:not([data-theme="light"]) .catalog-no-results { color: #b9bdc5; }
+:root:not([data-theme="light"]) .directory-search { border-color: #3d424a; background: #222529; color: #d994df; box-shadow: 0 0 0 4px #d994df12; }
+:root:not([data-theme="light"]) .directory-search input, :root:not([data-theme="light"]) .directory-filters select { background: transparent; color: #f2f2f2; }
+:root:not([data-theme="light"]) .directory-search input::placeholder { color: #aeb3bc; }
+:root:not([data-theme="light"]) .directory-filters select { border-color: #3d424a; background: #222529; }
+:root:not([data-theme="light"]) .directory-section-heading span { background: #30263a; color: #e7e9ec; }
+:root:not([data-theme="light"]) .connected-integration, :root:not([data-theme="light"]) .catalog-card { border-color: #383c43; background: #222529; }
+:root:not([data-theme="light"]) .connected-integration h3, :root:not([data-theme="light"]) .catalog-card h3 { color: #f2f2f2; }
+:root:not([data-theme="light"]) .connected-integration p { color: #7fdaa0; }
+:root:not([data-theme="light"]) .available-badge { background: #1d4930; color: #9ae2b2; }
+:root:not([data-theme="light"]) .planned-badge, :root:not([data-theme="light"]) .coming-soon { background: #3b2b41; color: #e3b9e7; }
+:root:not([data-theme="light"]) .catalog-no-results { border-color: #3d424a; }
 .app-shell.is-resizing, .app-shell.is-resizing * { cursor: col-resize !important; user-select: none; }
 
 .workspace-rail { width: 76px; flex: 0 0 76px; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 13px 10px; background: #3f0e40; border-right: 1px solid #652765; }
@@ -182,6 +207,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid #c87fd0; outline-
 .backup-settings { display: grid !important; align-items: start !important; justify-content: stretch !important; gap: 13px; }
 .backup-settings > div { margin: 0; padding: 0; border: 0; }
 .backup-warning { margin: 0; padding: 11px 12px; border: 1px solid #e8c870; border-radius: 8px; background: #fff8df; color: #725514 !important; line-height: 1.45; }
+.backup-integration { margin: 0; color: #746979; font-size: 13px; }
+.backup-token-form { margin-top: 4px; }
 .backup-config { display: grid !important; gap: 9px; }
 .backup-config label, .backup-config select, .backup-restore input { font: inherit; }
 .backup-config select, .backup-restore input { width: min(100%, 460px); padding: 9px 10px; border: 1px solid #cfc3d2; border-radius: 7px; background: #fff; color: #302433; }

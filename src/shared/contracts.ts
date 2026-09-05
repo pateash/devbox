@@ -12,7 +12,7 @@ export interface DevBoxApi {
   workspaces: { list(): Promise<WorkspaceSummary[]>; create(input: { name: string }): Promise<Workspace>; rename(id: string, input: { name: string }): Promise<Workspace>; remove(id: string, input: { confirmationName: string }): Promise<void>; archive(id: string): Promise<void>; current(): Promise<Workspace | null>; select(id: string): Promise<Workspace> }
   dashboard: { get(workspaceId: string): Promise<DashboardData> }
   github: { connectPersonalAccessToken(token: string): Promise<IntegrationSummary>; global(): Promise<IntegrationSummary | null>; assignedRepositories(workspaceId: string): Promise<string[]>; setAssignedRepositories(workspaceId: string, repositories: string[]): Promise<void>; refreshGlobal(): Promise<void>; refreshWorkspace(workspaceId: string): Promise<void>; disconnect(): Promise<void>; workItems(workspaceId: string): Promise<WorkItem[]> }
-  backups: { status(): Promise<BackupStatus>; repositories(): Promise<BackupRepository[]>; configure(repositoryId: number, acknowledgement: true): Promise<BackupStatus>; run(): Promise<BackupStatus>; restoreLatest(confirmation: 'RESTORE'): Promise<void> }
+  backups: { status(): Promise<BackupStatus>; repositories(): Promise<BackupRepository[]>; connectToken(token: string): Promise<BackupRepository[]>; configure(repositoryId: number, acknowledgement: true): Promise<BackupStatus>; run(): Promise<BackupStatus>; restoreLatest(confirmation: 'RESTORE'): Promise<void> }
   preferences: { getTheme(workspaceId: string): Promise<Theme>; setTheme(workspaceId: string, theme: Theme): Promise<void> }
   links: { openExternal(url: string): Promise<void> }
   events: { subscribeWorkspaceChanges(listener: () => void): () => void }
