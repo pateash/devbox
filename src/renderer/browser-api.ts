@@ -22,7 +22,32 @@ export function createBrowserDevboxApi(): DevBoxApi {
       select:async(id)=>remote<Workspace>('/workspaces/select',{method:'POST',body:JSON.stringify({id})})
     },
     dashboard:{get:async(workspaceId)=>remote(`/dashboard?workspaceId=${encodeURIComponent(workspaceId)}`)},
-    github:{connectPersonalAccessToken:async()=>{throw new Error('GitHub connections are available only in the DevBox desktop app.');},global:async()=>remote<GitHubIntegrationSummary|null>('/github/global'),assignedRepositories:async(workspaceId)=>remote<string[]>(`/github/assigned?workspaceId=${encodeURIComponent(workspaceId)}`),setAssignedRepositories:async()=>undefined,refreshGlobal:async()=>undefined,refreshWorkspace:async()=>undefined,disconnect:async()=>undefined,workItems:async(workspaceId)=>remote<WorkItem[]>(`/github/work-items?workspaceId=${encodeURIComponent(workspaceId)}`)},
+    github:{
+      connectPersonalAccessToken:async(token)=>{
+        const result=await remote<GitHubIntegrationSummary>('/github/connect',{method:'POST',body:JSON.stringify({token})});
+        listeners.forEach((listener)=>listener());
+        return result
+      },
+      global:async()=>remote<GitHubIntegrationSummary|null>('/github/global'),
+      assignedRepositories:async(workspaceId)=>remote<string[]>(`/github/assigned?workspaceId=${encodeURIComponent(workspaceId)}`),
+      setAssignedRepositories:async(workspaceId,repositories)=>{
+        await remote('/github/assigned',{method:'POST',body:JSON.stringify({workspaceId,repositories})});
+        listeners.forEach((listener)=>listener())
+      },
+      refreshGlobal:async()=>{
+        await remote('/github/refresh-global',{method:'POST'});
+        listeners.forEach((listener)=>listener())
+      },
+      refreshWorkspace:async(workspaceId)=>{
+        await remote('/github/refresh-workspace',{method:'POST',body:JSON.stringify({workspaceId})});
+        listeners.forEach((listener)=>listener())
+      },
+      disconnect:async()=>{
+        await remote('/github/disconnect',{method:'POST'});
+        listeners.forEach((listener)=>listener())
+      },
+      workItems:async(workspaceId)=>remote<WorkItem[]>(`/github/work-items?workspaceId=${encodeURIComponent(workspaceId)}`)
+    },
     jira:{connect:async()=>{throw new Error('Jira connections are available only in the DevBox desktop app.');},get:async()=>null,setProjects:async()=>undefined,refresh:async()=>undefined,disconnect:async()=>undefined,workItems:async()=>[]},
     backups:{status:async():Promise<BackupStatus>=>({repository:null,lastBackedUpAt:null,lastCommitUrl:null,lastError:null,dirty:false}),repositories:async():Promise<BackupRepository[]>=>[],connectToken:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},configure:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},run:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},restoreLatest:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');}},
     preferences:{getTheme:async(workspaceId)=>read().themes[workspaceId]??'dark',setTheme:async(workspaceId,theme)=>{const state=read(); state.themes[workspaceId]=theme; write(state)}},

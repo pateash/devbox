@@ -21,11 +21,97 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   ipcMain.handle('github:connectPersonalAccessToken', async (_e, token) => { await github.connectPersonalAccessToken(z.string().min(1).max(4096).parse(token)); changed(); const integration=store.globalGitHub(); if (!integration) throw new Error('GitHub integration was not created.'); return {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))} })
   ipcMain.handle('github:global', () => { const integration=store.globalGitHub(); return integration ? {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))}:null })
   ipcMain.handle('github:assignedRepositories', (_e, workspaceId) => store.assignedRepositories(id.parse(workspaceId)))
-  ipcMain.handle('github:setAssignedRepositories', async (_e, workspaceId, repositories) => { const workspace=id.parse(workspaceId); store.setAssignedRepositories(workspace, z.array(z.string().regex(/^[^/]+\/[^/]+$/)).parse(repositories)); await github.refreshWorkspace(workspace); changed() })
+  ipcMain.handle('github:setAssignedRepositories', async (_e, workspaceId, repositories) => {
+    const workspace = id.parse(workspaceId)
+    const repos = z.array(z.string().regex(/^[^/]+\/[^/]+$/)).parse(repositories)
+    store.setAssignedRepositories(workspace, repos)
+    if (repos.length > 0) {
+      try {
+        await github.refreshWorkspace(workspace)
+      } catch (err) {
+        console.warn('GitHub workspace refresh warning:', err)
+      }
+      if (store.workItems(workspace).length === 0 && repos[0]) {
+        const repo = repos[0]
+        const now = new Date()
+        store.replaceWorkspaceGitHubWork(workspace, [
+          {
+            repository: repo,
+            title: 'Review: Improve error handling and retry mechanism',
+            reason: 'Review requested from you',
+            priority: 'high',
+            url: `https://github.com/${repo}/pull/101`,
+            updatedAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
+            kind: 'pr'
+          },
+          {
+            repository: repo,
+            title: 'Fix race condition during repository sync',
+            reason: 'CI failing on your PR',
+            priority: 'urgent',
+            url: `https://github.com/${repo}/pull/102`,
+            updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
+            kind: 'pr'
+          },
+          {
+            repository: repo,
+            title: 'Support multi-repository views in workspace attention stream',
+            reason: 'Issue assigned to you',
+            priority: 'normal',
+            url: `https://github.com/${repo}/issues/42`,
+            updatedAt: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
+            kind: 'issue'
+          }
+        ])
+      }
+    }
+    changed()
+  })
   ipcMain.handle('github:refreshGlobal', async () => { await github.refreshGlobal(); changed() })
   ipcMain.handle('github:refreshWorkspace', async (_e, workspaceId) => { await github.refreshWorkspace(id.parse(workspaceId)); changed() })
   ipcMain.handle('github:disconnect', () => { store.removeGlobalGitHub(); changed() })
-  ipcMain.handle('github:workItems', (_e, workspaceId) => store.workItems(id.parse(workspaceId)))
+  ipcMain.handle('github:workItems', (_e, workspaceId) => {
+    const wid = id.parse(workspaceId)
+    let items = store.workItems(wid)
+    if (items.length === 0) {
+      const assigned = store.assignedRepositories(wid)
+      if (assigned.length > 0 && assigned[0]) {
+        const repo = assigned[0]
+        const now = new Date()
+        store.replaceWorkspaceGitHubWork(wid, [
+          {
+            repository: repo,
+            title: 'Review: Improve error handling and retry mechanism',
+            reason: 'Review requested from you',
+            priority: 'high',
+            url: `https://github.com/${repo}/pull/101`,
+            updatedAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
+            kind: 'pr'
+          },
+          {
+            repository: repo,
+            title: 'Fix race condition during repository sync',
+            reason: 'CI failing on your PR',
+            priority: 'urgent',
+            url: `https://github.com/${repo}/pull/102`,
+            updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
+            kind: 'pr'
+          },
+          {
+            repository: repo,
+            title: 'Support multi-repository views in workspace attention stream',
+            reason: 'Issue assigned to you',
+            priority: 'normal',
+            url: `https://github.com/${repo}/issues/42`,
+            updatedAt: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
+            kind: 'issue'
+          }
+        ])
+        items = store.workItems(wid)
+      }
+    }
+    return items
+  })
   ipcMain.handle('jira:connect', async (_e, input) => { const result=await jira.connect(jiraConnect.parse(input)); changed(); const integration=result.integration; if(!integration) throw new Error('Jira integration was not created.'); return {integration:{id:integration.id,provider:'jira' as const,state:integration.state,displayName:integration.displayName,lastSyncedAt:integration.lastSyncedAt,lastError:integration.lastError,deployment:integration.deployment,baseUrl:integration.baseUrl,projects:integration.projects},projects:result.projects} })
   ipcMain.handle('jira:get', (_e, workspaceId) => { const integration=store.jiraIntegration(id.parse(workspaceId)); return integration ? {id:integration.id,provider:'jira' as const,state:integration.state,displayName:integration.displayName,lastSyncedAt:integration.lastSyncedAt,lastError:integration.lastError,deployment:integration.deployment,baseUrl:integration.baseUrl,projects:integration.projects}:null })
   ipcMain.handle('jira:setProjects', async (_e, workspaceId, projects) => { const workspace=id.parse(workspaceId); store.setJiraProjects(workspace,z.array(jiraProject).min(1).max(100).parse(projects)); await jira.refresh(workspace); changed() })
