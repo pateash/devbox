@@ -20,6 +20,8 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   ipcMain.handle('dashboard:get', (_e, workspaceId) => { const workspace = store.getWorkspace(id.parse(workspaceId)); if (!workspace) throw new Error('Workspace not found.'); return { workspace, fixtureMode, message: fixtureMode ? 'Development fixture mode is active.' : 'Connect GitHub or Jira to start seeing actionable work.', fixtureItems: fixtureMode ? [{ title: 'Fixture: review requested', reason: 'Development-only sample data' }, { title: 'Fixture: failing check', reason: 'Development-only sample data' }] : [] } })
   ipcMain.handle('github:connectPersonalAccessToken', async (_e, token) => { await github.connectPersonalAccessToken(z.string().min(1).max(4096).parse(token)); changed(); const integration=store.globalGitHub(); if (!integration) throw new Error('GitHub integration was not created.'); return {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))} })
   ipcMain.handle('github:global', () => { const integration=store.globalGitHub(); return integration ? {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))}:null })
+  ipcMain.handle('github:repositoryOwners', () => github.repositoryOwners())
+  ipcMain.handle('github:repositoriesForOwner', async (_e, owner) => { const result=await github.repositoriesForOwner(z.string().min(1).max(100).parse(owner)); changed(); return result })
   ipcMain.handle('github:assignedRepositories', (_e, workspaceId) => store.assignedRepositories(id.parse(workspaceId)))
   ipcMain.handle('github:setAssignedRepositories', async (_e, workspaceId, repositories) => {
     const workspace = id.parse(workspaceId)
