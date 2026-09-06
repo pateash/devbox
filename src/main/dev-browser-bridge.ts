@@ -92,6 +92,11 @@ export function startDevBrowserBridge(
       finish(githubSummary(store))
       return
     }
+    if (path === '/github/repository-owners' && request.method === 'GET') {
+      if (!github) { finish({ error: 'GitHub service unavailable.' }, 503); return }
+      void github.repositoryOwners().then(finish).catch((error: unknown) => finish({ error: error instanceof Error ? error.message : 'Unable to load GitHub owners.' }, 500))
+      return
+    }
 
     const workspaceId = url.searchParams.get('workspaceId')
     if (path === '/github/assigned' && workspaceId && request.method === 'GET') {
@@ -146,6 +151,12 @@ export function startDevBrowserBridge(
           const id = typeof input.id === 'string' ? input.id : ''
           store.archiveWorkspace(id)
           finish({})
+          return
+        }
+        if (path === '/github/repositories-for-owner' && request.method === 'POST') {
+          const owner = typeof input.owner === 'string' ? input.owner : ''
+          if (!owner || !github) throw new Error('GitHub owner lookup is unavailable.')
+          finish(await github.repositoriesForOwner(owner))
           return
         }
         if (path === '/github/assigned' && request.method === 'POST') {

@@ -11,13 +11,28 @@ const response = (value: unknown, status = 200): Response => new Response(JSON.s
 afterEach(() => { stores.splice(0).forEach((item) => item.close()); vi.unstubAllGlobals() })
 
 describe('repository-scoped GitHub sync', () => {
-  it('refreshes every repository page so recently updated repositories are available', async () => {
+  it('returns owner counts first and only pages repositories for the selected owner', async () => {
     const db = store(); const integrationId = db.createGlobalGitHub('octocat', Buffer.from('encrypted'), ['octocat/old'])
     const calls: string[]=[]
-    vi.stubGlobal('fetch', vi.fn(async (input: string) => { calls.push(input); const url=new URL(input); if(url.pathname==='/user') return response({login:'octocat'}); if(url.pathname==='/user/repos'&&url.searchParams.get('page')==='1') return response(Array.from({length:100},(_,index)=>({full_name:`octocat/repository-${index}`}))); if(url.pathname==='/user/repos'&&url.searchParams.get('page')==='2') return response([{full_name:'pateash/devbox'}]); return response({},404) }))
-    await new GitHubService(db,{decrypt:()=> 'token'} as never).refreshGlobal()
-    expect(db.globalGitHub()?.repositories).toContain('pateash/devbox')
-    expect(calls.filter((url)=>url.includes('/user/repos')).map((url)=>new URL(url).searchParams.get('page'))).toEqual(['1','2'])
+    vi.stubGlobal('fetch', vi.fn(async (input: string) => {
+      calls.push(input)
+      const url = new URL(input)
+      if (url.pathname === '/user') return response({ login: 'octocat' })
+      if (url.pathname === '/user/orgs') return response([{ login: 'acme' }])
+      if (url.pathname === '/user/repos' && url.searchParams.get('per_page') === '1') return new Response(JSON.stringify([{}]), { headers: { 'content-type': 'application/json', link: '<https://api.github.com/user/repos?affiliation=owner&per_page=1&page=3>; rel="last"' } })
+      if (url.pathname === '/orgs/acme/repos' && url.searchParams.get('per_page') === '1') return new Response(JSON.stringify([{}]), { headers: { 'content-type': 'application/json', link: '<https://api.github.com/orgs/acme/repos?type=all&per_page=1&page=2>; rel="last"' } })
+      if (url.pathname === '/orgs/acme/repos' && url.searchParams.get('page') === '1') return response(Array.from({ length: 100 }, (_, index) => ({ full_name: `acme/repository-${index}` })))
+      if (url.pathname === '/orgs/acme/repos' && url.searchParams.get('page') === '2') return response([{ full_name: 'acme/platform' }])
+      return response({}, 404)
+    }))
+    const github = new GitHubService(db, { decrypt: () => 'token' } as never)
+    await expect(github.repositoryOwners()).resolves.toEqual([{ login: 'octocat', kind: 'user', count: 3 }, { login: 'acme', kind: 'organization', count: 2 }])
+    expect(calls.some((url) => {
+      const request = new URL(url)
+      return request.pathname.endsWith('/repos') && request.searchParams.get('per_page') === '100'
+    })).toBe(false)
+    await expect(github.repositoriesForOwner('acme')).resolves.toHaveLength(101)
+    expect(db.globalGitHub()?.repositories).toContain('acme/platform')
     expect(db.globalGitHub()?.id).toBe(integrationId)
   })
 

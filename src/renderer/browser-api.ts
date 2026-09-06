@@ -1,4 +1,4 @@
-import type { BackupRepository, BackupStatus, DevBoxApi, GitHubIntegrationSummary, Theme, Workspace, WorkspaceSummary, WorkItem } from '../shared/contracts'
+import type { BackupRepository, BackupStatus, DevBoxApi, GitHubIntegrationSummary, GitHubRepositoryOwner, Theme, Workspace, WorkspaceSummary, WorkItem } from '../shared/contracts'
 
 type BrowserState = { workspaces: Workspace[]; currentId: string; themes: Record<string, Theme> }
 const KEY = 'devbox:browser-preview:v1'
@@ -29,6 +29,8 @@ export function createBrowserDevboxApi(): DevBoxApi {
         return result
       },
       global:async()=>remote<GitHubIntegrationSummary|null>('/github/global'),
+      repositoryOwners:async()=>remote<GitHubRepositoryOwner[]>('/github/repository-owners'),
+      repositoriesForOwner:async(owner)=>{ const result=await remote<string[]>('/github/repositories-for-owner',{method:'POST',body:JSON.stringify({owner})}); listeners.forEach((listener)=>listener()); return result },
       assignedRepositories:async(workspaceId)=>remote<string[]>(`/github/assigned?workspaceId=${encodeURIComponent(workspaceId)}`),
       setAssignedRepositories:async(workspaceId,repositories)=>{
         await remote('/github/assigned',{method:'POST',body:JSON.stringify({workspaceId,repositories})});

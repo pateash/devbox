@@ -2,8 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { Archive, Blocks, Boxes, Check, ChevronDown, CircleDot, ExternalLink, Filter, Github, GitPullRequest, LayoutGrid, Moon, Plus, RefreshCw, Search, Settings, Sun, TicketCheck, X } from 'lucide-react'
-import type { GitHubIntegrationSummary, JiraIntegrationSummary, JiraProject, Theme, WorkItem, Workspace, WorkspaceSummary } from '../shared/contracts'
+import type { GitHubIntegrationSummary, GitHubRepositoryOwner, JiraIntegrationSummary, JiraProject, Theme, WorkItem, Workspace, WorkspaceSummary } from '../shared/contracts'
 import { createBrowserDevboxApi } from './browser-api'
+import '@fontsource/lato/300.css'
+import '@fontsource/lato/400.css'
+import '@fontsource/lato/700.css'
+import '@fontsource/lato/900.css'
 import './styles.css'
 
 const client = new QueryClient()
@@ -41,11 +45,11 @@ function WorkspaceMenu({ current, workspaces, creating, setCreating, select, don
   return <div className="workspace-menu" role="dialog" aria-label="Switch workspace"><p className="workspace-menu-title">Switch workspace</p>{workspaces.map((workspace) => <button className={'menu-action ' + (workspace.id === current.id ? 'selected' : '')} key={workspace.id} onClick={() => select(workspace.id)}>{workspaceInitials(workspace.name)}<span>{workspace.name}</span></button>)}<div className="menu-divider" /><button className="menu-action create-workspace-action" onClick={() => setCreating(true)}><Plus size={16} />Create workspace</button></div>
 }
 
-function Sidebar({ current, workspaces, page, assignedRepositories, menuOpen, creating, setMenuOpen, setCreating, setPage, select, done }: { current: Workspace; workspaces: WorkspaceSummary[]; page: Page; assignedRepositories: string[]; menuOpen: boolean; creating: boolean; setMenuOpen: (value: boolean) => void; setCreating: (value: boolean) => void; setPage: (page: Page) => void; select: (id: string) => void; done: () => void }): React.ReactElement {
+function Sidebar({ current, workspaces, page, assignedRepositories, menuOpen, creating, setMenuOpen, setCreating, setPage, select, done, openGlobalIntegrations }: { current: Workspace; workspaces: WorkspaceSummary[]; page: Page; assignedRepositories: string[]; menuOpen: boolean; creating: boolean; setMenuOpen: (value: boolean) => void; setCreating: (value: boolean) => void; setPage: (page: Page) => void; select: (id: string) => void; done: () => void; openGlobalIntegrations: () => void }): React.ReactElement {
   const gitConfigured = assignedRepositories.length > 0
   return <aside className="workspace-sidebar">
     <div className="sidebar-heading"><button className="workspace-switcher" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen}><span>{current.name}</span><ChevronDown size={18} /></button><button className="compose-button" onClick={() => setPage('WorkspaceSettings')} aria-label="Workspace settings"><Settings size={19} /></button>{menuOpen && <WorkspaceMenu current={current} workspaces={workspaces} creating={creating} setCreating={setCreating} select={select} done={done} />}</div>
-    <button className="sidebar-search" onClick={() => setPage('GlobalIntegrations')}><Search size={18} />Find a section or integration<span>⌘K</span></button>
+    <button className="sidebar-search" onClick={openGlobalIntegrations}><Search size={18} />Find a section or integration<span>⌘K</span></button>
     <nav className="primary-nav" aria-label="Workspace navigation"><button className={page === 'Overview' ? 'active' : ''} onClick={() => setPage('Overview')}><Boxes size={18} />Overview</button>{workspaceSections.map(({ label, page: sectionPage, icon: Icon }) => <button key={label} className={page === sectionPage ? 'active' : ''} onClick={() => setPage(sectionPage)}><Icon size={18} />{label}<span className="unread-count">{sectionPage === 'GitHub' && gitConfigured ? '•' : ''}</span></button>)}<button className={page === 'Integrations' || page === 'GitIntegration' ? 'active' : ''} onClick={() => setPage('Integrations')}><Blocks size={18} />Integrations</button></nav>
     <div className="sidebar-footer"><span>Local-first</span></div>
   </aside>
@@ -58,18 +62,21 @@ function GitHubConnect({ integration, workspaceId, assignedRepositories, refresh
   const [refreshMessage, setRefreshMessage] = useState('')
   const [reconnecting, setReconnecting] = useState(false)
   const [repositoryQuery, setRepositoryQuery] = useState('')
-  const [selectedOwner, setSelectedOwner] = useState('all')
+  const [selectedOwner, setSelectedOwner] = useState('')
+  const [owners, setOwners] = useState<GitHubRepositoryOwner[]>([])
+  const [ownerRepositories, setOwnerRepositories] = useState<string[]>([])
   const [selectedRepository, setSelectedRepository] = useState(assignedRepositories[0] ?? '')
   useEffect(() => { setSelectedRepository(assignedRepositories[0] ?? ''); setRepositoryQuery('') }, [workspaceId, assignedRepositories])
+  useEffect(() => { if (!workspaceOnly || !integration) return; let active=true; void window.devbox.github.repositoryOwners().then((result) => { if(active) setOwners(result) }).catch((reason: unknown) => { if(active) setError(reason instanceof Error ? reason.message : 'Unable to load GitHub owners.') }); return () => { active=false } }, [workspaceOnly, integration?.id])
+  async function selectOwner(owner: string): Promise<void> { setSelectedOwner(owner); setRepositoryQuery(''); setOwnerRepositories([]); if(!owner) return; setBusy(true); setError(''); try { setOwnerRepositories(await window.devbox.github.repositoriesForOwner(owner)) } catch(reason) { setError(reason instanceof Error ? reason.message : 'Unable to load repositories for that owner.') } finally { setBusy(false) } }
   async function connect(event: React.FormEvent): Promise<void> { event.preventDefault(); setBusy(true); setError(''); try { await window.devbox.github.connectPersonalAccessToken(token); setToken(''); await refresh() } catch (reason) { setError(reason instanceof Error ? reason.message : 'GitHub could not verify that token.') } finally { setBusy(false) } }
   async function saveRepository(): Promise<void> { if (!workspaceId) return; setBusy(true); setError(''); try { await window.devbox.github.setAssignedRepositories(workspaceId, selectedRepository ? [selectedRepository] : []); await refresh() } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update the repository.') } finally { setBusy(false) } }
-  async function refreshRepositories(): Promise<void> { setBusy(true); setError(''); setRefreshMessage(''); try { await window.devbox.github.refreshGlobal(); await refresh(); setRefreshMessage('Repository list refreshed just now.') } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to refresh repositories.') } finally { setBusy(false) } }
+  async function refreshRepositories(): Promise<void> { setBusy(true); setError(''); setRefreshMessage(''); try { await window.devbox.github.refreshGlobal(); const availableOwners=await window.devbox.github.repositoryOwners(); setOwners(availableOwners); if(selectedOwner) setOwnerRepositories(await window.devbox.github.repositoriesForOwner(selectedOwner)); await refresh(); setRefreshMessage(selectedOwner ? 'Repository list refreshed just now.' : 'Owner list refreshed just now.') } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to refresh repositories.') } finally { setBusy(false) } }
   if (integration) {
-    const allRepositories = integration.repositories
-    const owners = Array.from(new Set(allRepositories.map((r) => r.fullName.split('/')[0]).filter(Boolean))).sort()
+    const allRepositories = ownerRepositories.map((fullName) => ({ fullName, selected: fullName === selectedRepository }))
     const query = repositoryQuery.trim().toLowerCase()
     const matchingRepositories = allRepositories.filter((repository) => {
-      if (selectedOwner !== 'all') {
+      if (selectedOwner) {
         const [owner] = repository.fullName.split('/')
         if (owner !== selectedOwner) return false
       }
@@ -126,15 +133,12 @@ function GitHubConnect({ integration, workspaceId, assignedRepositories, refresh
             <input value={repositoryQuery} onChange={(event) => setRepositoryQuery(event.target.value)} placeholder="Search all repositories by name or owner…" aria-label="Search all repositories" autoComplete="off" />
             {repositoryQuery && <button type="button" className="search-clear-btn" onClick={() => setRepositoryQuery('')} aria-label="Clear search"><X size={15} /></button>}
           </label>
-          {owners.length > 1 && (
+          {workspaceOnly && (
             <div className="repository-owner-filter">
               <label htmlFor="repo-owner-select"><Filter size={14} /> Owner</label>
-              <select id="repo-owner-select" value={selectedOwner} onChange={(e) => setSelectedOwner(e.target.value)} aria-label="Filter repositories by owner">
-                <option value="all">All owners ({allRepositories.length})</option>
-                {owners.map((owner) => {
-                  const count = allRepositories.filter((r) => r.fullName.startsWith(owner + '/')).length
-                  return <option key={owner} value={owner}>{owner} ({count})</option>
-                })}
+              <select id="repo-owner-select" value={selectedOwner} onChange={(e) => void selectOwner(e.target.value)} aria-label="Load repositories for owner" disabled={busy}>
+                <option value="">Choose an owner</option>
+                {owners.map((owner) => <option key={owner.login} value={owner.login}>{owner.login} ({owner.count})</option>)}
               </select>
             </div>
           )}
@@ -142,9 +146,9 @@ function GitHubConnect({ integration, workspaceId, assignedRepositories, refresh
 
         <div className="repository-list-header">
           <span className="repository-count-badge">
-            {query || selectedOwner !== 'all' ? `Showing ${matchingRepositories.length} of ${allRepositories.length} repositories` : `All ${allRepositories.length} repositories`}
+            {selectedOwner ? `Showing ${matchingRepositories.length} of ${allRepositories.length} repositories from ${selectedOwner}` : 'Choose an owner to load repositories'}
           </span>
-          {(query || selectedOwner !== 'all') && <button type="button" className="reset-filter-btn" onClick={() => { setRepositoryQuery(''); setSelectedOwner('all') }}>Reset filters</button>}
+          {(query || selectedOwner) && <button type="button" className="reset-filter-btn" onClick={() => { setRepositoryQuery(''); void selectOwner('') }}>Reset filters</button>}
         </div>
 
         <div className="repository-picker">
@@ -179,9 +183,9 @@ function GitHubConnect({ integration, workspaceId, assignedRepositories, refresh
           ) : (
             <div className="repository-empty-state">
               <Search size={22} className="empty-icon" />
-              <p>No repositories match {query ? `"${query}"` : 'the current filter'}.</p>
+              <p>{selectedOwner ? `No repositories match ${query ? `"${query}"` : 'the current filter'}.` : 'Choose an owner to load its repositories.'}</p>
               <div className="empty-actions">
-                {(query || selectedOwner !== 'all') && <button type="button" className="secondary" onClick={() => { setRepositoryQuery(''); setSelectedOwner('all') }}>Clear filters</button>}
+                {(query || selectedOwner) && <button type="button" className="secondary" onClick={() => { setRepositoryQuery(''); void selectOwner('') }}>Clear filters</button>}
                 <button type="button" className="secondary" onClick={() => void refreshRepositories()} disabled={busy}><RefreshCw size={14} className={busy ? 'spin' : ''} />Refresh from GitHub</button>
               </div>
             </div>
@@ -229,10 +233,9 @@ function WorkView({ items, hasConfiguredSources, goToIntegrations }: { items: Wo
   return <><div className="content-title"><div><h1>Developer overview</h1><p>A quiet view of what needs your attention across this workspace.</p></div></div><section className="attention-section"><div className="section-heading"><h2>Needs your attention</h2>{items.length > 0 && <span>{items.length}</span>}</div>{items.length ? <div className="work-list">{items.map((item) => <WorkRow key={item.id} item={item} />)}</div> : <div className="empty-state"><Blocks size={31} /><h2>{hasConfiguredSources ? 'You’re all caught up' : 'Set up this workspace'}</h2><p>{hasConfiguredSources ? 'New pull requests and tickets from the sources attached here will appear when they need your attention.' : 'Connect GitHub repositories, Jira projects, or both to bring this workspace to life.'}</p><button onClick={goToIntegrations}>{hasConfiguredSources ? 'Manage integrations' : 'Add an integration'}</button></div>}</section></>
 }
 
-function GitView({ repository, integration, items, manageIntegration }: { repository?: string; integration?: GitHubIntegrationSummary; items: WorkItem[]; manageIntegration: () => void }): React.ReactElement {
+function GitView({ repository, items, manageIntegration }: { repository?: string; integration?: GitHubIntegrationSummary; items: WorkItem[]; manageIntegration: () => void }): React.ReactElement {
   if (!repository) return <div className="empty-state"><Github size={31} /><h2>Attach a repository to Git</h2><p>Select one GitHub repository in this workspace to give it a focused pull request and issue view.</p><button onClick={manageIntegration}>Choose repository</button></div>
-  const needsReconnect = integration?.state === 'needs_reauth' || integration?.lastError?.includes('safeStorage.decryptString')
-  return <><section className="repository-detail"><div className="repository-heading"><span className="provider-icon github"><Github size={26} /></span><div><p className="eyebrow">This workspace</p><h1>{repository}</h1><p>GitHub repository attached to this workspace</p></div></div><div className="repository-detail-actions"><span className={needsReconnect ? 'sync-status warning' : 'sync-status'}>{needsReconnect ? 'Reconnect GitHub to refresh' : relativeRefreshTime(integration?.lastSyncedAt ?? null)}</span><button className="secondary external-link" onClick={() => void window.devbox.links.openExternal(`https://github.com/${repository}`)}>Open repository<ExternalLink size={15} /></button><button className="secondary" onClick={manageIntegration}>Manage integration</button></div></section><section className="attention-section git-work-section"><div className="section-heading"><h2>Pull requests & issues</h2>{items.length > 0 && <span>{items.length}</span>}</div>{items.length ? <div className="work-list">{items.map((item) => <WorkRow key={item.id} item={item} />)}</div> : <div className="empty-state compact-empty"><GitPullRequest size={28} /><h2>No GitHub work needs attention</h2><p>Actionable pull requests and assigned issues from {repository} will appear here after the next successful sync.</p><button className="secondary" onClick={manageIntegration}>View integration</button></div>}</section></>
+  return <section className="attention-section git-work-section"><div className="section-heading"><h2>Pull requests & issues</h2>{items.length > 0 && <span>{items.length}</span>}<button className="secondary section-action" onClick={manageIntegration}>Manage integration</button></div>{items.length ? <div className="work-list">{items.map((item) => <WorkRow key={item.id} item={item} />)}</div> : <div className="empty-state compact-empty"><GitPullRequest size={28} /><h2>No GitHub work needs attention</h2><p>Actionable pull requests and assigned issues from this workspace’s selected repository will appear here after the next successful sync.</p><button className="secondary" onClick={manageIntegration}>View integration</button></div>}</section>
 }
 
 function TicketsView({ workspaceId, integration, items, openSetup, refresh }: { workspaceId: string; integration?: JiraIntegrationSummary; items: WorkItem[]; openSetup: () => void; refresh: () => void }): React.ReactElement {
@@ -268,10 +271,16 @@ function BackupSettings({ githubName }: { githubName?: string }): React.ReactEle
 }
 
 function GlobalSettingsView({ theme, onToggle, githubConnected }: { theme: Theme; onToggle: () => void; githubConnected: boolean }): React.ReactElement { return <section className="settings-view"><p className="eyebrow">Applies to DevBox</p><h1>Global settings</h1><div><div><h2>Appearance</h2><p>Choose the contrast for every workspace on this Mac.</p></div><button onClick={onToggle}>{theme === 'dark' ? 'Use light mode' : 'Use dark mode'}</button></div><BackupSettings githubName={githubConnected ? 'your connected account' : undefined} /></section> }
+function GlobalModal({ section, onSelect, onClose, children }: { section: 'integrations' | 'github' | 'settings'; onSelect: (section: 'integrations' | 'settings') => void; onClose: () => void; children: React.ReactNode }): React.ReactElement {
+  useEffect(() => { const close = (event: KeyboardEvent): void => { if (event.key === 'Escape') onClose() }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close) }, [onClose])
+  const title = section === 'settings' ? 'Global settings' : section === 'github' ? 'GitHub account' : 'Global integrations'
+  return <div className="global-modal-backdrop" role="presentation" onMouseDown={onClose}><section className="global-modal" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(event) => event.stopPropagation()}><header><h1>{title}</h1><button type="button" className="modal-close" onClick={onClose} aria-label="Close dialog"><X size={28} /></button></header><div className="global-modal-body"><nav aria-label="Global preferences"><button className={section === 'integrations' || section === 'github' ? 'active' : ''} onClick={() => onSelect('integrations')}><Blocks size={18} />Integrations</button><button className={section === 'settings' ? 'active' : ''} onClick={() => onSelect('settings')}><Settings size={18} />Settings</button></nav><div className="global-modal-content">{children}</div></div></section></div>
+}
 function WorkspaceSettingsView({ workspace, done }: { workspace: Workspace; done: () => void }): React.ReactElement { const [error,setError]=useState(''); async function archive(): Promise<void> { try { await window.devbox.workspaces.archive(workspace.id); done() } catch(reason) { setError(reason instanceof Error?reason.message:'Unable to archive workspace.') } } return <section className="settings-view workspace-settings-view"><p className="eyebrow">This workspace</p><h1>Workspace settings</h1><div className="workspace-settings-section"><WorkspaceForm current={workspace} done={done} /></div><div className="workspace-settings-section danger-zone"><div><h2>Archive workspace</h2><p>Hide {workspace.name} from the workspace switcher. Its local data is kept for restoration.</p></div><button className="danger-button" onClick={() => void archive()}><Archive size={16} />Archive</button></div>{error&&<p className="error">{error}</p>}</section> }
 
 function App(): React.ReactElement {
   const [page, setPage] = useState<Page>('Overview')
+  const [globalModal, setGlobalModal] = useState<'integrations' | 'github' | 'settings' | null>(null)
   const [onboarding, setOnboarding] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
   const [refreshing, setRefreshing] = useState(false)
@@ -334,8 +343,17 @@ function App(): React.ReactElement {
   }, [clampSidebarWidth, isResizing])
   if (!current) return <main className="welcome"><div className="welcome-mark"><AppMark /></div><h1>Create your first workspace</h1><p>Keep each organization’s developer attention separate and local to this Mac.</p><WorkspaceForm done={(created) => { if (created) setOnboarding(true); void refetchCurrent() }} /></main>
   const hasConfiguredSource = assignedRepositories.length > 0 || !!jiraIntegration?.projects.length
-  if (onboarding) return <Onboarding openGitHub={() => { setOnboarding(false); setPage('GlobalIntegrations') }} openJira={() => { setOnboarding(false); setPage('Jira') }} skip={() => setOnboarding(false)} />
-  return <div className={'app-shell ' + (isResizing ? 'is-resizing' : '')} style={{ '--workspace-sidebar-width': sidebarWidth + 'px' } as React.CSSProperties}><WorkspaceRail current={current} workspaces={workspaces} select={switchWorkspace} integrations={() => setPage('GlobalIntegrations')} settings={() => setPage('GlobalSettings')} theme={theme} toggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setTheme(next); window.localStorage.setItem('devbox:global-theme:v1',next) }} /><Sidebar current={current} workspaces={workspaces} page={page} assignedRepositories={assignedRepositories} menuOpen={menuOpen} creating={creating} setMenuOpen={setMenuOpen} setCreating={setCreating} setPage={setPage} select={switchWorkspace} done={finishWorkspaceChange} /><div className="sidebar-resizer" role="separator" aria-label="Resize workspace sidebar" aria-orientation="vertical" aria-valuemin={MIN_SIDEBAR_WIDTH} aria-valuemax={MAX_SIDEBAR_WIDTH} aria-valuenow={sidebarWidth} tabIndex={0} onPointerDown={startResize} onKeyDown={resizeWithKeyboard} /><main className="main-content"><header className="topbar"><div className="breadcrumb"><Boxes size={17} /><span>DevBox</span><ChevronDown size={15} /><b>{title}</b></div><div className="topbar-actions"><span className="sync-pill"><i />{refreshing ? 'Syncing…' : relativeRefreshTime(integration?.lastSyncedAt ?? jiraIntegration?.lastSyncedAt ?? null)}</span><button className="topbar-button" onClick={refresh} aria-label="Refresh workspace" disabled={refreshing}><RefreshCw className={refreshing ? 'spin' : ''} size={17} />Sync</button></div></header><div className="content-body">{page === 'GlobalIntegrations' ? <GlobalIntegrationDirectory github={integration} jira={jiraIntegration ?? undefined} openGitHub={() => setPage('GlobalGitHub')} openJira={() => setPage('Jira')} /> : page === 'GlobalGitHub' ? <GitHubConnect integration={globalIntegration ?? undefined} assignedRepositories={[]} refresh={refreshData} /> : page === 'GitIntegration' ? <GitHubConnect integration={integration} workspaceId={current.id} assignedRepositories={assignedRepositories} refresh={refreshData} workspaceOnly openGlobal={() => setPage('GlobalIntegrations')} /> : page === 'Integrations' ? <IntegrationDirectory integration={integration} jira={jiraIntegration ?? undefined} assignedRepositories={assignedRepositories} openGitHub={() => setPage('GitIntegration')} openJira={() => setPage('Jira')} /> : page === 'GitHub' ? <GitView repository={assignedRepositories[0]} integration={integration} items={githubItems} manageIntegration={() => setPage('GitIntegration')} /> : page === 'Jira' ? <TicketsView workspaceId={current.id} integration={jiraIntegration ?? undefined} items={jiraItems} refresh={() => void refreshData()} openSetup={() => setPage('Jira')} /> : page === 'Bitbucket' ? <PlannedTool name="Bitbucket" category="Git" /> : page === 'GlobalSettings' ? <GlobalSettingsView theme={theme} githubConnected={!!globalIntegration} onToggle={() => { const next = theme === 'dark' ? 'light' : 'dark'; setTheme(next); window.localStorage.setItem('devbox:global-theme:v1',next) }} /> : page === 'WorkspaceSettings' ? <WorkspaceSettingsView workspace={current} done={finishWorkspaceChange} /> : <WorkView items={items} hasConfiguredSources={hasConfiguredSource} goToIntegrations={() => setPage('Integrations')} />}</div></main></div>
+  if (onboarding) return <Onboarding openGitHub={() => { setOnboarding(false); setGlobalModal('integrations') }} openJira={() => { setOnboarding(false); setPage('Jira') }} skip={() => setOnboarding(false)} />
+  const toggleTheme = (): void => { const next = theme === 'dark' ? 'light' : 'dark'; setTheme(next); window.localStorage.setItem('devbox:global-theme:v1', next) }
+  const workspaceContent = page === 'GitIntegration' ? <GitHubConnect integration={integration} workspaceId={current.id} assignedRepositories={assignedRepositories} refresh={refreshData} workspaceOnly openGlobal={() => setGlobalModal('integrations')} /> : page === 'Integrations' ? <IntegrationDirectory integration={integration} jira={jiraIntegration ?? undefined} assignedRepositories={assignedRepositories} openGitHub={() => setPage('GitIntegration')} openJira={() => setPage('Jira')} /> : page === 'GitHub' ? <GitView repository={assignedRepositories[0]} integration={integration} items={githubItems} manageIntegration={() => setPage('GitIntegration')} /> : page === 'Jira' ? <TicketsView workspaceId={current.id} integration={jiraIntegration ?? undefined} items={jiraItems} refresh={() => void refreshData()} openSetup={() => setPage('Jira')} /> : page === 'Bitbucket' ? <PlannedTool name="Bitbucket" category="Git" /> : page === 'WorkspaceSettings' ? <WorkspaceSettingsView workspace={current} done={finishWorkspaceChange} /> : <WorkView items={items} hasConfiguredSources={hasConfiguredSource} goToIntegrations={() => setPage('Integrations')} />
+  const modalContent = globalModal === 'github' ? <GitHubConnect integration={globalIntegration ?? undefined} assignedRepositories={[]} refresh={refreshData} /> : globalModal === 'settings' ? <GlobalSettingsView theme={theme} githubConnected={!!globalIntegration} onToggle={toggleTheme} /> : <GlobalIntegrationDirectory github={integration} jira={jiraIntegration ?? undefined} openGitHub={() => setGlobalModal('github')} openJira={() => { setGlobalModal(null); setPage('Jira') }} />
+  return <div className={'app-shell ' + (isResizing ? 'is-resizing' : '')} style={{ '--workspace-sidebar-width': sidebarWidth + 'px' } as React.CSSProperties}>
+    <WorkspaceRail current={current} workspaces={workspaces} select={switchWorkspace} integrations={() => setGlobalModal('integrations')} settings={() => setGlobalModal('settings')} theme={theme} toggleTheme={toggleTheme} />
+    <Sidebar current={current} workspaces={workspaces} page={page} assignedRepositories={assignedRepositories} menuOpen={menuOpen} creating={creating} setMenuOpen={setMenuOpen} setCreating={setCreating} setPage={setPage} select={switchWorkspace} done={finishWorkspaceChange} openGlobalIntegrations={() => setGlobalModal('integrations')} />
+    <div className="sidebar-resizer" role="separator" aria-label="Resize workspace sidebar" aria-orientation="vertical" aria-valuemin={MIN_SIDEBAR_WIDTH} aria-valuemax={MAX_SIDEBAR_WIDTH} aria-valuenow={sidebarWidth} tabIndex={0} onPointerDown={startResize} onKeyDown={resizeWithKeyboard} />
+    <main className="main-content"><header className="topbar"><div className="breadcrumb"><Boxes size={17} /><span>DevBox</span><ChevronDown size={15} /><b>{title}</b></div><div className="topbar-actions"><span className="sync-pill"><i />{refreshing ? 'Syncing…' : relativeRefreshTime(integration?.lastSyncedAt ?? jiraIntegration?.lastSyncedAt ?? null)}</span><button className="topbar-button" onClick={refresh} aria-label="Refresh workspace" disabled={refreshing}><RefreshCw className={refreshing ? 'spin' : ''} size={17} />Sync</button></div></header><div className="content-body">{workspaceContent}</div></main>
+    {globalModal && <GlobalModal section={globalModal} onClose={() => setGlobalModal(null)} onSelect={(section) => setGlobalModal(section)}>{modalContent}</GlobalModal>}
+  </div>
 }
 
 if (typeof window.devbox === 'undefined') window.devbox = createBrowserDevboxApi()
