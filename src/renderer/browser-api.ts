@@ -10,6 +10,9 @@ const write = (state: BrowserState): void => { window.localStorage.setItem(KEY,J
 const remote = async <T>(path:string, init?:RequestInit):Promise<T>=>{const response=await fetch('/devbox-api'+path,{headers:{'content-type':'application/json'},...init}); const data=await response.json() as T&{error?:string}; if(!response.ok||data.error) throw new Error(data.error??'DevBox desktop bridge is unavailable.'); return data}
 
 export function createBrowserDevboxApi(): DevBoxApi {
+  document.documentElement.dataset.devboxPreview = 'true'
+  const disablePreviewOnlyJiraConnect = (): void => document.querySelectorAll<HTMLButtonElement>('.token-form:has(select) button[type="submit"]').forEach((button) => { button.disabled = true; button.title = 'Jira connections are available only in the DevBox desktop app.' })
+  new MutationObserver(disablePreviewOnlyJiraConnect).observe(document.documentElement, { childList: true, subtree: true })
   return {
     version:'1',
     workspaces:{

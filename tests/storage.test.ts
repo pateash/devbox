@@ -14,7 +14,7 @@ describe('repository-scoped work', () => {
     expect(db.assignedRepositories(workspace.id)).toEqual(['pateash/devbox'])
   })
 
-  it('allows reusable assignments and removes only stale workspace rows', () => {
+  it('allows reusable assignments and clears cached work when a workspace repository changes', () => {
     const db = store(); const first = db.createWorkspace('Acme'); const second = db.createWorkspace('Personal')
     db.createGlobalGitHub('octocat', Buffer.from('encrypted-token'), ['octocat/api', 'octocat/web'])
     db.setAssignedRepositories(first.id, ['octocat/api']); db.setAssignedRepositories(second.id, ['octocat/api'])
@@ -22,7 +22,7 @@ describe('repository-scoped work', () => {
     db.replaceWorkspaceGitHubWork(second.id, [{ repository: 'octocat/api', title: 'Separate workspace', reason: 'Issue assigned to you', priority: 'normal', url: 'https://github.com/octocat/api/issues/3', updatedAt: '2026-01-03T00:00:00.000Z', kind: 'issue' }])
     db.setAssignedRepositories(first.id, ['octocat/web'])
     expect(db.assignedRepositories(second.id)).toEqual(['octocat/api'])
-    expect(db.workItems(first.id).map((item) => item.title)).toEqual(['Web issue'])
+    expect(db.workItems(first.id)).toEqual([])
     expect(db.workItems(second.id).map((item) => item.title)).toEqual(['Separate workspace'])
     expect(() => db.setAssignedRepositories(first.id, ['octocat/api', 'octocat/web'])).toThrow('only one GitHub repository')
     expect(() => db.setAssignedRepositories(first.id, ['other/private'])).toThrow('not available')

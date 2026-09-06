@@ -33,39 +33,6 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
       } catch (err) {
         console.warn('GitHub workspace refresh warning:', err)
       }
-      if (store.workItems(workspace).length === 0 && repos[0]) {
-        const repo = repos[0]
-        const now = new Date()
-        store.replaceWorkspaceGitHubWork(workspace, [
-          {
-            repository: repo,
-            title: 'Review: Improve error handling and retry mechanism',
-            reason: 'Review requested from you',
-            priority: 'high',
-            url: `https://github.com/${repo}/pull/101`,
-            updatedAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
-            kind: 'pr'
-          },
-          {
-            repository: repo,
-            title: 'Fix race condition during repository sync',
-            reason: 'CI failing on your PR',
-            priority: 'urgent',
-            url: `https://github.com/${repo}/pull/102`,
-            updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
-            kind: 'pr'
-          },
-          {
-            repository: repo,
-            title: 'Support multi-repository views in workspace attention stream',
-            reason: 'Issue assigned to you',
-            priority: 'normal',
-            url: `https://github.com/${repo}/issues/42`,
-            updatedAt: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
-            kind: 'issue'
-          }
-        ])
-      }
     }
     changed()
   })

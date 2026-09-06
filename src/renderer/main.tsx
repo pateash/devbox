@@ -16,11 +16,6 @@ const MIN_SIDEBAR_WIDTH = 240
 const MAX_SIDEBAR_WIDTH = 480
 const DEFAULT_SIDEBAR_WIDTH = 308
 const workspaceSections: Array<{ label: 'Git' | 'Tickets'; page: 'GitHub' | 'Jira'; icon: typeof Github }> = [{ label: 'Git', page: 'GitHub', icon: GitPullRequest }, { label: 'Tickets', page: 'Jira', icon: CircleDot }]
-const integrationCatalog: Array<{ id: 'github' | 'bitbucket' | 'jira'; name: string; category: 'Git' | 'Tickets'; description: string; icon: typeof Github; available: boolean }> = [
-  { id: 'github', name: 'GitHub', category: 'Git', description: 'Review requests, failing checks, and mentions in one local attention view.', icon: Github, available: true },
-  { id: 'bitbucket', name: 'Bitbucket', category: 'Git', description: 'Pull requests and build activity from Bitbucket workspaces.', icon: LayoutGrid, available: false },
-  { id: 'jira', name: 'Jira', category: 'Tickets', description: 'Assigned work from your configured Jira projects.', icon: CircleDot, available: true }
-]
 
 function workspaceInitials(name: string): string { return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'DB' }
 function relativeRefreshTime(value: string | null): string { if (!value) return 'Not refreshed yet'; const seconds=Math.max(0,Math.round((Date.now()-new Date(value).getTime())/1000)); if(seconds<60) return 'Refreshed just now'; const minutes=Math.floor(seconds/60); if(minutes<60) return `Refreshed ${minutes} ${minutes===1?'minute':'minutes'} ago`; const hours=Math.floor(minutes/60); if(hours<24) return `Refreshed ${hours} ${hours===1?'hour':'hours'} ago`; const days=Math.floor(hours/24); return `Refreshed ${days} ${days===1?'day':'days'} ago` }
@@ -37,7 +32,7 @@ function WorkspaceForm({ current, done, cancel }: { current?: Workspace; done: (
 function WorkspaceRail({ current, workspaces, select, integrations, settings, theme, toggleTheme }: { current: Workspace; workspaces: WorkspaceSummary[]; select: (id: string) => void; integrations: () => void; settings: () => void; theme: Theme; toggleTheme: () => void }): React.ReactElement {
   const ThemeIcon = theme === 'dark' ? Sun : Moon
   const themeLabel = theme === 'dark' ? 'Use light mode' : 'Use dark mode'
-  return <aside className="workspace-rail" aria-label="Workspaces"><div className="traffic-lights" aria-hidden="true"><i /><i /><i /></div><div className="workspace-avatars">{workspaces.slice(0, 5).map((workspace) => <button key={workspace.id} className={'workspace-avatar ' + (workspace.id === current.id ? 'selected' : '')} onClick={() => select(workspace.id)} aria-label={'Switch to ' + workspace.name} aria-pressed={workspace.id === current.id}>{workspaceInitials(workspace.name)}{workspace.id === current.id && <span className="presence" />}</button>)}</div><div className="rail-actions"><button className="rail-button" onClick={integrations} aria-label="Global integrations"><Blocks size={19} /></button><button className="rail-button rail-theme-button" onClick={toggleTheme} aria-label={themeLabel} title={themeLabel}><ThemeIcon size={19} /></button><button className="rail-button" onClick={settings} aria-label="Global settings"><Settings size={18} /></button></div></aside>
+  return <aside className="workspace-rail" aria-label="Workspaces"><div className="workspace-avatars">{workspaces.slice(0, 5).map((workspace) => <button key={workspace.id} className={'workspace-avatar ' + (workspace.id === current.id ? 'selected' : '')} onClick={() => select(workspace.id)} aria-label={'Switch to ' + workspace.name} aria-pressed={workspace.id === current.id}>{workspaceInitials(workspace.name)}{workspace.id === current.id && <span className="presence" />}</button>)}</div><div className="rail-actions"><button className="rail-button" onClick={integrations} aria-label="Global integrations"><Blocks size={19} /></button><button className="rail-button rail-theme-button" onClick={toggleTheme} aria-label={themeLabel} title={themeLabel}><ThemeIcon size={19} /></button><button className="rail-button" onClick={settings} aria-label="Preferences"><Settings size={18} /></button></div></aside>
 }
 
 function WorkspaceMenu({ current, workspaces, creating, setCreating, select, done }: { current: Workspace; workspaces: WorkspaceSummary[]; creating: boolean; setCreating: (value: boolean) => void; select: (id: string) => void; done: () => void }): React.ReactElement {
@@ -45,11 +40,11 @@ function WorkspaceMenu({ current, workspaces, creating, setCreating, select, don
   return <div className="workspace-menu" role="dialog" aria-label="Switch workspace"><p className="workspace-menu-title">Switch workspace</p>{workspaces.map((workspace) => <button className={'menu-action ' + (workspace.id === current.id ? 'selected' : '')} key={workspace.id} onClick={() => select(workspace.id)}>{workspaceInitials(workspace.name)}<span>{workspace.name}</span></button>)}<div className="menu-divider" /><button className="menu-action create-workspace-action" onClick={() => setCreating(true)}><Plus size={16} />Create workspace</button></div>
 }
 
-function Sidebar({ current, workspaces, page, assignedRepositories, menuOpen, creating, setMenuOpen, setCreating, setPage, select, done, openGlobalIntegrations }: { current: Workspace; workspaces: WorkspaceSummary[]; page: Page; assignedRepositories: string[]; menuOpen: boolean; creating: boolean; setMenuOpen: (value: boolean) => void; setCreating: (value: boolean) => void; setPage: (page: Page) => void; select: (id: string) => void; done: () => void; openGlobalIntegrations: () => void }): React.ReactElement {
+function Sidebar({ current, workspaces, page, assignedRepositories, menuOpen, creating, setMenuOpen, setCreating, setPage, select, done, openCommandPalette }: { current: Workspace; workspaces: WorkspaceSummary[]; page: Page; assignedRepositories: string[]; menuOpen: boolean; creating: boolean; setMenuOpen: (value: boolean) => void; setCreating: (value: boolean) => void; setPage: (page: Page) => void; select: (id: string) => void; done: () => void; openCommandPalette: () => void }): React.ReactElement {
   const gitConfigured = assignedRepositories.length > 0
   return <aside className="workspace-sidebar">
     <div className="sidebar-heading"><button className="workspace-switcher" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen}><span>{current.name}</span><ChevronDown size={18} /></button><button className="compose-button" onClick={() => setPage('WorkspaceSettings')} aria-label="Workspace settings"><Settings size={19} /></button>{menuOpen && <WorkspaceMenu current={current} workspaces={workspaces} creating={creating} setCreating={setCreating} select={select} done={done} />}</div>
-    <button className="sidebar-search" onClick={openGlobalIntegrations}><Search size={18} />Find a section or integration<span>⌘K</span></button>
+    <button className="sidebar-search" onClick={openCommandPalette} aria-label="Find a section, workspace, or action (Cmd+K)"><Search size={18} />Find a section or integration<span>⌘K</span></button>
     <nav className="primary-nav" aria-label="Workspace navigation"><button className={page === 'Overview' ? 'active' : ''} onClick={() => setPage('Overview')}><Boxes size={18} />Overview</button>{workspaceSections.map(({ label, page: sectionPage, icon: Icon }) => <button key={label} className={page === sectionPage ? 'active' : ''} onClick={() => setPage(sectionPage)}><Icon size={18} />{label}<span className="unread-count">{sectionPage === 'GitHub' && gitConfigured ? '•' : ''}</span></button>)}<button className={page === 'Integrations' || page === 'GitIntegration' ? 'active' : ''} onClick={() => setPage('Integrations')}><Blocks size={18} />Integrations</button></nav>
     <div className="sidebar-footer"><span>Local-first</span></div>
   </aside>
@@ -67,11 +62,12 @@ function GitHubConnect({ integration, workspaceId, assignedRepositories, refresh
   const [ownerRepositories, setOwnerRepositories] = useState<string[]>([])
   const [selectedRepository, setSelectedRepository] = useState(assignedRepositories[0] ?? '')
   useEffect(() => { setSelectedRepository(assignedRepositories[0] ?? ''); setRepositoryQuery('') }, [workspaceId, assignedRepositories])
-  useEffect(() => { if (!workspaceOnly || !integration) return; let active=true; void window.devbox.github.repositoryOwners().then((result) => { if(active) setOwners(result) }).catch((reason: unknown) => { if(active) setError(reason instanceof Error ? reason.message : 'Unable to load GitHub owners.') }); return () => { active=false } }, [workspaceOnly, integration?.id])
-  async function selectOwner(owner: string): Promise<void> { setSelectedOwner(owner); setRepositoryQuery(''); setOwnerRepositories([]); if(!owner) return; setBusy(true); setError(''); try { setOwnerRepositories(await window.devbox.github.repositoriesForOwner(owner)) } catch(reason) { setError(reason instanceof Error ? reason.message : 'Unable to load repositories for that owner.') } finally { setBusy(false) } }
+  const githubError = (reason: unknown, fallback: string): string => { const message = reason instanceof Error ? reason.message : fallback; return message.includes('safeStorage.decryptString') ? 'GitHub needs to be reconnected before repositories can be loaded.' : message }
+  useEffect(() => { if (!workspaceOnly || !integration) return; let active=true; void window.devbox.github.repositoryOwners().then((result) => { if(active) setOwners(result) }).catch((reason: unknown) => { if(active) setError(githubError(reason, 'Unable to load GitHub owners.')) }); return () => { active=false } }, [workspaceOnly, integration?.id])
+  async function selectOwner(owner: string): Promise<void> { setSelectedOwner(owner); setRepositoryQuery(''); setOwnerRepositories([]); if(!owner) return; setBusy(true); setError(''); try { setOwnerRepositories(await window.devbox.github.repositoriesForOwner(owner)) } catch(reason) { setError(githubError(reason, 'Unable to load repositories for that owner.')) } finally { setBusy(false) } }
   async function connect(event: React.FormEvent): Promise<void> { event.preventDefault(); setBusy(true); setError(''); try { await window.devbox.github.connectPersonalAccessToken(token); setToken(''); await refresh() } catch (reason) { setError(reason instanceof Error ? reason.message : 'GitHub could not verify that token.') } finally { setBusy(false) } }
   async function saveRepository(): Promise<void> { if (!workspaceId) return; setBusy(true); setError(''); try { await window.devbox.github.setAssignedRepositories(workspaceId, selectedRepository ? [selectedRepository] : []); await refresh() } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update the repository.') } finally { setBusy(false) } }
-  async function refreshRepositories(): Promise<void> { setBusy(true); setError(''); setRefreshMessage(''); try { await window.devbox.github.refreshGlobal(); const availableOwners=await window.devbox.github.repositoryOwners(); setOwners(availableOwners); if(selectedOwner) setOwnerRepositories(await window.devbox.github.repositoriesForOwner(selectedOwner)); await refresh(); setRefreshMessage(selectedOwner ? 'Repository list refreshed just now.' : 'Owner list refreshed just now.') } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to refresh repositories.') } finally { setBusy(false) } }
+  async function refreshRepositories(): Promise<void> { setBusy(true); setError(''); setRefreshMessage(''); try { await window.devbox.github.refreshGlobal(); const availableOwners=await window.devbox.github.repositoryOwners(); setOwners(availableOwners); if(selectedOwner) setOwnerRepositories(await window.devbox.github.repositoriesForOwner(selectedOwner)); await refresh(); setRefreshMessage(selectedOwner ? 'Repository list refreshed just now.' : 'Owner list refreshed just now.') } catch (reason) { setError(githubError(reason, 'Unable to refresh repositories.')) } finally { setBusy(false) } }
   if (integration) {
     const allRepositories = ownerRepositories.map((fullName) => ({ fullName, selected: fullName === selectedRepository }))
     const query = repositoryQuery.trim().toLowerCase()
@@ -205,19 +201,9 @@ function GitHubConnect({ integration, workspaceId, assignedRepositories, refresh
 }
 
 function IntegrationDirectory({ integration, jira, assignedRepositories, openGitHub, openJira }: { integration?: GitHubIntegrationSummary; jira?: JiraIntegrationSummary; assignedRepositories: string[]; openGitHub: () => void; openJira: () => void }): React.ReactElement {
-  const [query, setQuery] = useState('')
-  const [category, setCategory] = useState<'All' | 'Git' | 'Tickets'>('All')
-  const matching = useMemo(() => integrationCatalog.filter((item) => (category === 'All' || item.category === category) && (item.name + item.category + item.description).toLowerCase().includes(query.trim().toLowerCase())), [category, query])
   const githubConfigured = assignedRepositories.length > 0
   const jiraConfigured = !!jira?.projects.length
-  const unconfigured = matching.filter((item) => item.id === 'github' ? !githubConfigured : item.id === 'jira' ? !jiraConfigured : true)
-  return <section className="integration-directory">
-    <div className="directory-title"><p className="eyebrow">This workspace</p><h1>Integrations</h1><p>Attach the sources that define this workspace. GitHub repositories and Jira projects stay scoped here, while your credentials remain local to this Mac.</p></div>
-    <label className="directory-search"><Search size={20} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search integrations by name or category" aria-label="Search integrations" /></label>
-    <div className="directory-filters"><label>Category<select value={category} onChange={(event) => setCategory(event.target.value as 'All' | 'Git' | 'Tickets')}><option value="All">All categories</option><option value="Git">Git</option><option value="Tickets">Tickets</option></select></label></div>
-    {(githubConfigured || jiraConfigured) && <section className="connected-integrations"><div className="directory-section-heading"><h2>Configured for this workspace</h2><span>{Number(githubConfigured)+Number(jiraConfigured)}</span></div>{githubConfigured && <article className="connected-integration"><span className="catalog-icon"><Github size={23} /></span><div><h3>GitHub</h3><p>{assignedRepositories.length} {assignedRepositories.length === 1 ? 'repository' : 'repositories'} attached to this workspace</p></div><button className="secondary" onClick={openGitHub}>Configure</button></article>}{jiraConfigured && <article className="connected-integration"><span className="catalog-icon"><CircleDot size={23} /></span><div><h3>Jira</h3><p>{jira?.projects.map((project) => project.key).join(', ')}</p></div><button className="secondary" onClick={openJira}>Configure</button></article>}</section>}
-    <section><div className="directory-section-heading"><h2>{githubConfigured || jiraConfigured ? 'Add another integration' : 'Start with a source'}</h2><span>{unconfigured.length}</span></div><div className="integration-grid">{unconfigured.map((item) => { const Icon = item.icon; const open=item.id==='github'?openGitHub:openJira; const accountConnected=item.id==='github' ? !!integration : item.id==='jira' ? !!jira : false; return <article className="catalog-card" key={item.id}><span className="catalog-icon"><Icon size={25} /></span><div className="catalog-card-copy"><div><h3>{item.name}</h3><span className={item.available ? 'available-badge' : 'planned-badge'}>{accountConnected ? 'Account connected' : item.available ? item.category : 'Planned'}</span></div><p>{item.description}</p></div><button className={item.available ? 'catalog-connect' : 'secondary'} disabled={!item.available} onClick={item.available ? open : undefined}>{accountConnected ? item.id==='github' ? 'Choose repositories' : 'Choose projects' : item.available ? 'Connect' : 'Coming soon'}</button></article> })}</div>{unconfigured.length === 0 && <div className="catalog-no-results"><Search size={22} /><p>No integrations match that search.</p></div>}</section>
-  </section>
+  return <section className="integration-directory workspace-integration-mapping"><div className="directory-title"><p className="eyebrow">This workspace</p><h1>Integrations</h1><p>Review what this workspace is mapped to, then configure any source that is not yet connected.</p></div><section className="workspace-mapping-list"><article className="connected-integration"><span className="catalog-icon"><Github size={23}/></span><div><h3>GitHub repository</h3><p>{githubConfigured ? assignedRepositories.join(', ') : integration ? 'No repository selected for this workspace.' : 'Connect a GitHub account in Global integrations first.'}</p></div><button className="secondary" onClick={openGitHub}>{githubConfigured ? 'Change repository' : integration ? 'Select repository' : 'Configure GitHub'}</button></article><article className="connected-integration"><span className="catalog-icon"><CircleDot size={23}/></span><div><h3>Jira projects</h3><p>{jiraConfigured ? jira?.projects.map((project)=>project.key).join(', ') : 'Jira is not configured for this workspace.'}</p></div><button className="secondary" onClick={openJira}>{jiraConfigured ? 'Change projects' : 'Configure Jira'}</button></article><article className="connected-integration"><span className="catalog-icon"><LayoutGrid size={23}/></span><div><h3>Bitbucket</h3><p>Not configured. This integration is planned.</p></div><button className="secondary" disabled>Coming soon</button></article></section></section>
 }
 
 function GlobalIntegrationDirectory({ github, jira, openGitHub, openJira }: { github?: GitHubIntegrationSummary; jira?: JiraIntegrationSummary; openGitHub: () => void; openJira: () => void }): React.ReactElement {
@@ -270,17 +256,361 @@ function BackupSettings({ githubName }: { githubName?: string }): React.ReactEle
   return <div className="backup-settings"><div><h2>GitHub backup</h2><p>Back up all non-secret local DevBox data to an existing private GitHub repository.</p></div>{githubName ? <p className="backup-integration">Using connected GitHub integration: <strong>{githubName}</strong></p> : <p>Connect a GitHub integration, or use a backup-only token below.</p>}<p className="backup-warning">Backups are not encrypted. Anyone with access to the private repository can read cached work titles, URLs, settings, and local work state. Tokens and Keychain secrets are never included.</p>{status?.repository ? <div className="backup-status"><strong>{status.repository.fullName}</strong><span>{status.lastBackedUpAt ? 'Last backed up '+new Date(status.lastBackedUpAt).toLocaleString() : 'No backup created yet'}{status.dirty ? ' · local changes pending' : ''}</span>{status.lastCommitUrl && <button className="secondary" onClick={() => void window.devbox.links.openExternal(status.lastCommitUrl!)}>Open backup<ExternalLink size={15} /></button>}<button onClick={() => void backup()} disabled={busy}>{busy ? 'Backing up…' : 'Back up now'}</button></div> : <><button className="secondary" onClick={() => void chooseRepository()} disabled={busy}>{busy ? 'Loading…' : githubName ? 'Use connected GitHub integration' : 'Check GitHub integrations'}</button>{repositories.length>0 && <div className="backup-config"><label htmlFor="backup-repository">Backup repository</label><select id="backup-repository" value={repositoryId} onChange={(event)=>setRepositoryId(event.target.value)}><option value="">Choose a repository</option>{repositories.map((repository)=><option key={repository.id} value={repository.id}>{repository.fullName}</option>)}</select><label className="backup-ack"><input type="checkbox" checked={acknowledged} onChange={(event)=>setAcknowledged(event.target.checked)} />I understand this private-repository backup is unencrypted.</label><button onClick={() => void configure()} disabled={busy||!repositoryId||!acknowledged}>Use this repository</button></div>}{repositories.length===0 && <form className="token-form backup-token-form" onSubmit={(event)=>void connectToken(event)}><label htmlFor="backup-token">Backup-only GitHub token</label><input id="backup-token" type="password" value={token} onChange={(event)=>setToken(event.target.value)} autoComplete="off" spellCheck={false} placeholder="github_pat_…" required disabled={busy} /><p>Use a fine-grained token with Contents read/write access to the private backup repository. It does not replace your existing integration.</p><button type="submit" disabled={busy}>{busy ? 'Verifying token…' : 'Use backup token'}</button></form>}</>}{status?.repository && <div className="backup-restore"><h3>Restore latest backup</h3><p>This replaces all local DevBox data. GitHub must be reconnected afterward because credentials are never restored.</p><input aria-label="Restore confirmation" value={confirmation} onChange={(event)=>setConfirmation(event.target.value)} placeholder="Type RESTORE" /><button className="danger-button" onClick={() => void restore()} disabled={busy||confirmation!=='RESTORE'}>Restore latest</button></div>}{error && <p className="error">{error}</p>}</div>
 }
 
-function GlobalSettingsView({ theme, onToggle, githubConnected }: { theme: Theme; onToggle: () => void; githubConnected: boolean }): React.ReactElement { return <section className="settings-view"><p className="eyebrow">Applies to DevBox</p><h1>Global settings</h1><div><div><h2>Appearance</h2><p>Choose the contrast for every workspace on this Mac.</p></div><button onClick={onToggle}>{theme === 'dark' ? 'Use light mode' : 'Use dark mode'}</button></div><BackupSettings githubName={githubConnected ? 'your connected account' : undefined} /></section> }
+function GlobalSettingsView({ theme, onToggle, githubConnected }: { theme: Theme; onToggle: () => void; githubConnected: boolean }): React.ReactElement { return <section className="settings-view"><p className="eyebrow">Applies to DevBox</p><h1>Preferences</h1><div><div><h2>Appearance</h2><p>Choose the contrast for every workspace on this Mac.</p></div><button onClick={onToggle}>{theme === 'dark' ? 'Use light mode' : 'Use dark mode'}</button></div><BackupSettings githubName={githubConnected ? 'your connected account' : undefined} /></section> }
 function GlobalModal({ section, onSelect, onClose, children }: { section: 'integrations' | 'github' | 'settings'; onSelect: (section: 'integrations' | 'settings') => void; onClose: () => void; children: React.ReactNode }): React.ReactElement {
   useEffect(() => { const close = (event: KeyboardEvent): void => { if (event.key === 'Escape') onClose() }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close) }, [onClose])
-  const title = section === 'settings' ? 'Global settings' : section === 'github' ? 'GitHub account' : 'Global integrations'
-  return <div className="global-modal-backdrop" role="presentation" onMouseDown={onClose}><section className="global-modal" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(event) => event.stopPropagation()}><header><h1>{title}</h1><button type="button" className="modal-close" onClick={onClose} aria-label="Close dialog"><X size={28} /></button></header><div className="global-modal-body"><nav aria-label="Global preferences"><button className={section === 'integrations' || section === 'github' ? 'active' : ''} onClick={() => onSelect('integrations')}><Blocks size={18} />Integrations</button><button className={section === 'settings' ? 'active' : ''} onClick={() => onSelect('settings')}><Settings size={18} />Settings</button></nav><div className="global-modal-content">{children}</div></div></section></div>
+  const title = section === 'settings' ? 'Preferences' : section === 'github' ? 'GitHub account' : 'Global integrations'
+  return <div className="global-modal-backdrop" role="presentation" onMouseDown={onClose}><section className="global-modal" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(event) => event.stopPropagation()}><header><h1>{title}</h1><button type="button" className="modal-close" onClick={onClose} aria-label="Close dialog"><X size={28} /></button></header><div className="global-modal-body"><nav aria-label="Global preferences"><button className={section === 'integrations' || section === 'github' ? 'active' : ''} onClick={() => onSelect('integrations')}><Blocks size={18} />Integrations</button><button className={section === 'settings' ? 'active' : ''} onClick={() => onSelect('settings')}><Settings size={18} />Preferences</button></nav><div className="global-modal-content">{children}</div></div></section></div>
 }
+type PaletteGroup = 'Navigation' | 'Workspaces' | 'Actions'
+
+interface PaletteItem {
+  id: string
+  group: PaletteGroup
+  title: string
+  subtitle?: string
+  icon: typeof Boxes
+  badge?: string
+  shortcut?: string
+  keywords?: string[]
+  onSelect: () => void
+}
+
+function CommandPalette({
+  isOpen,
+  onClose,
+  currentWorkspace,
+  workspaces,
+  selectWorkspace,
+  createWorkspace,
+  setPage,
+  openGlobalModal,
+  toggleTheme,
+  currentTheme,
+  syncWorkspace,
+  refreshing,
+  hasGitHub,
+  assignedRepositories
+}: {
+  isOpen: boolean
+  onClose: () => void
+  currentWorkspace: Workspace
+  workspaces: WorkspaceSummary[]
+  selectWorkspace: (id: string) => void
+  createWorkspace: () => void
+  setPage: (page: Page) => void
+  openGlobalModal: (section: 'integrations' | 'settings' | 'github') => void
+  toggleTheme: () => void
+  currentTheme: Theme
+  syncWorkspace: () => void
+  refreshing: boolean
+  hasGitHub: boolean
+  assignedRepositories: string[]
+}): React.ReactElement | null {
+  const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const activeItemRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      setQuery('')
+      setActiveIndex(0)
+      const timer = setTimeout(() => inputRef.current?.focus(), 25)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [isOpen])
+
+  useEffect(() => {
+    activeItemRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex])
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  const allItems = useMemo<PaletteItem[]>(() => {
+    const list: PaletteItem[] = [
+      {
+        id: 'nav-overview',
+        group: 'Navigation',
+        title: 'Overview',
+        subtitle: 'Developer attention and priority items',
+        icon: Boxes,
+        shortcut: 'G O',
+        keywords: ['overview', 'dashboard', 'attention', 'pull requests', 'issues', 'home'],
+        onSelect: () => { setPage('Overview'); onClose() }
+      },
+      {
+        id: 'nav-git',
+        group: 'Navigation',
+        title: 'Git',
+        subtitle: assignedRepositories[0] ? `PRs & issues for ${assignedRepositories[0]}` : 'Attach a GitHub repository',
+        icon: GitPullRequest,
+        shortcut: 'G G',
+        keywords: ['git', 'github', 'prs', 'pull requests', 'issues', 'commits', assignedRepositories[0] ?? ''],
+        onSelect: () => { setPage('GitHub'); onClose() }
+      },
+      {
+        id: 'nav-tickets',
+        group: 'Navigation',
+        title: 'Tickets',
+        subtitle: 'Assigned Jira issues in this workspace',
+        icon: CircleDot,
+        shortcut: 'G T',
+        keywords: ['tickets', 'jira', 'issues', 'tasks', 'bugs', 'sprint'],
+        onSelect: () => { setPage('Jira'); onClose() }
+      },
+      {
+        id: 'nav-integrations',
+        group: 'Navigation',
+        title: 'Workspace Integrations',
+        subtitle: 'Configure GitHub & Jira sources for this workspace',
+        icon: Blocks,
+        shortcut: 'G I',
+        keywords: ['integrations', 'sources', 'github', 'jira', 'bitbucket', 'repositories'],
+        onSelect: () => { setPage('Integrations'); onClose() }
+      },
+      {
+        id: 'nav-repo-picker',
+        group: 'Navigation',
+        title: 'Choose Workspace Repository',
+        subtitle: 'Search and attach a repository to this workspace',
+        icon: Github,
+        keywords: ['choose repository', 'change repo', 'attach repo', 'select repository'],
+        onSelect: () => { setPage('GitIntegration'); onClose() }
+      },
+      {
+        id: 'nav-workspace-settings',
+        group: 'Navigation',
+        title: 'Workspace Settings',
+        subtitle: `Rename or archive "${currentWorkspace.name}"`,
+        icon: Settings,
+        keywords: ['workspace settings', 'rename', 'archive', 'preferences'],
+        onSelect: () => { setPage('WorkspaceSettings'); onClose() }
+      },
+      {
+        id: 'nav-global-integrations',
+        group: 'Navigation',
+        title: 'Global Integrations',
+        subtitle: 'Manage connected GitHub and Jira accounts',
+        icon: Blocks,
+        keywords: ['global integrations', 'accounts', 'github token', 'pat'],
+        onSelect: () => { openGlobalModal('integrations'); onClose() }
+      },
+      {
+        id: 'nav-global-settings',
+        group: 'Navigation',
+        title: 'Global Settings',
+        subtitle: 'Appearance and private GitHub repository backups',
+        icon: Settings,
+        keywords: ['global settings', 'appearance', 'theme', 'backup', 'restore'],
+        onSelect: () => { openGlobalModal('settings'); onClose() }
+      },
+
+      ...workspaces.map((ws) => ({
+        id: `ws-${ws.id}`,
+        group: 'Workspaces' as const,
+        title: ws.name,
+        subtitle: ws.id === currentWorkspace.id ? 'Current active workspace' : 'Switch to this workspace',
+        icon: Boxes,
+        badge: ws.id === currentWorkspace.id ? 'Active' : workspaceInitials(ws.name),
+        keywords: ['workspace', 'switch', ws.name],
+        onSelect: () => { selectWorkspace(ws.id); onClose() }
+      })),
+      {
+        id: 'ws-create',
+        group: 'Workspaces',
+        title: 'Create new workspace',
+        subtitle: 'Start a new local workspace for another project or org',
+        icon: Plus,
+        keywords: ['create workspace', 'new workspace', 'add workspace'],
+        onSelect: () => { createWorkspace(); onClose() }
+      },
+
+      {
+        id: 'action-sync',
+        group: 'Actions',
+        title: refreshing ? 'Syncing workspace…' : 'Sync workspace',
+        subtitle: 'Refresh latest PRs, issues, and checks from GitHub & Jira',
+        icon: RefreshCw,
+        shortcut: '⌘R',
+        keywords: ['sync', 'refresh', 'fetch', 'reload'],
+        onSelect: () => { syncWorkspace(); onClose() }
+      },
+      {
+        id: 'action-theme',
+        group: 'Actions',
+        title: currentTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
+        subtitle: currentTheme === 'dark' ? 'Use high contrast light background' : 'Use dark attention workspace theme',
+        icon: currentTheme === 'dark' ? Sun : Moon,
+        keywords: ['theme', 'dark mode', 'light mode', 'contrast', 'color'],
+        onSelect: () => { toggleTheme(); onClose() }
+      },
+      {
+        id: 'action-github',
+        group: 'Actions',
+        title: hasGitHub ? 'Manage GitHub account' : 'Connect GitHub account',
+        subtitle: hasGitHub ? 'View global GitHub connection status' : 'Connect personal access token',
+        icon: Github,
+        keywords: ['github', 'token', 'connect', 'pat'],
+        onSelect: () => { openGlobalModal('github'); onClose() }
+      }
+    ]
+    return list
+  }, [assignedRepositories, currentTheme, currentWorkspace.name, currentWorkspace.id, hasGitHub, onClose, openGlobalModal, refreshing, selectWorkspace, setPage, syncWorkspace, toggleTheme, workspaces, createWorkspace])
+
+  const cleanQuery = query.trim().toLowerCase()
+  const filteredItems = useMemo(() => {
+    if (!cleanQuery) return allItems
+    return allItems.filter((item) => {
+      if (item.title.toLowerCase().includes(cleanQuery)) return true
+      if (item.subtitle?.toLowerCase().includes(cleanQuery)) return true
+      if (item.group.toLowerCase().includes(cleanQuery)) return true
+      if (item.keywords?.some((k) => k.toLowerCase().includes(cleanQuery))) return true
+      return false
+    })
+  }, [allItems, cleanQuery])
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [cleanQuery])
+
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (filteredItems.length > 0) {
+        setActiveIndex((prev) => (prev + 1) % filteredItems.length)
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (filteredItems.length > 0) {
+        setActiveIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length)
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const selected = filteredItems[activeIndex]
+      if (selected) {
+        selected.onSelect()
+      }
+    }
+  }
+
+  if (!isOpen) return null
+
+  const groups: PaletteGroup[] = ['Navigation', 'Workspaces', 'Actions']
+  let runningIndex = 0
+
+  return (
+    <div className="command-palette-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="command-palette-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
+      >
+        <header className="command-palette-header">
+          <Search size={19} className="command-palette-search-icon" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Type a section, workspace, or action…"
+            aria-label="Command search"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          {query && (
+            <button
+              type="button"
+              className="search-clear-btn"
+              onClick={() => { setQuery(''); inputRef.current?.focus() }}
+              aria-label="Clear search"
+            >
+              <X size={16} />
+            </button>
+          )}
+          <kbd className="palette-kbd">ESC</kbd>
+        </header>
+
+        <div className="command-palette-results" role="listbox">
+          {filteredItems.length === 0 ? (
+            <div className="command-palette-empty">
+              <p>No results found for &ldquo;{query}&rdquo;</p>
+              <span>Try searching for overview, git, tickets, settings, or a workspace name.</span>
+            </div>
+          ) : (
+            groups.map((group) => {
+              const itemsInGroup = filteredItems.filter((i) => i.group === group)
+              if (itemsInGroup.length === 0) return null
+              return (
+                <div key={group} className="command-palette-group">
+                  <div className="command-palette-group-title">{group}</div>
+                  {itemsInGroup.map((item) => {
+                    const itemIndex = runningIndex++
+                    const isSelected = itemIndex === activeIndex
+                    const Icon = item.icon
+                    return (
+                      <button
+                        type="button"
+                        key={item.id}
+                        ref={isSelected ? activeItemRef : null}
+                        className={`command-palette-item ${isSelected ? 'active' : ''}`}
+                        onClick={item.onSelect}
+                        onMouseEnter={() => setActiveIndex(itemIndex)}
+                        role="option"
+                        aria-selected={isSelected}
+                      >
+                        <span className="palette-item-icon">
+                          <Icon size={17} />
+                        </span>
+                        <div className="palette-item-text">
+                          <span className="palette-item-title">{item.title}</span>
+                          {item.subtitle && <span className="palette-item-subtitle">{item.subtitle}</span>}
+                        </div>
+                        {item.badge && <span className="palette-item-badge">{item.badge}</span>}
+                        {item.shortcut && <kbd className="palette-item-shortcut">{item.shortcut}</kbd>}
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        <footer className="command-palette-footer">
+          <div className="palette-footer-hints">
+            <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+            <span><kbd>↵</kbd> select</span>
+            <span><kbd>esc</kbd> close</span>
+          </div>
+          <div className="palette-footer-count">
+            {filteredItems.length} {filteredItems.length === 1 ? 'command' : 'commands'}
+          </div>
+        </footer>
+      </section>
+    </div>
+  )
+}
+
 function WorkspaceSettingsView({ workspace, done }: { workspace: Workspace; done: () => void }): React.ReactElement { const [error,setError]=useState(''); async function archive(): Promise<void> { try { await window.devbox.workspaces.archive(workspace.id); done() } catch(reason) { setError(reason instanceof Error?reason.message:'Unable to archive workspace.') } } return <section className="settings-view workspace-settings-view"><p className="eyebrow">This workspace</p><h1>Workspace settings</h1><div className="workspace-settings-section"><WorkspaceForm current={workspace} done={done} /></div><div className="workspace-settings-section danger-zone"><div><h2>Archive workspace</h2><p>Hide {workspace.name} from the workspace switcher. Its local data is kept for restoration.</p></div><button className="danger-button" onClick={() => void archive()}><Archive size={16} />Archive</button></div>{error&&<p className="error">{error}</p>}</section> }
 
 function App(): React.ReactElement {
   const [page, setPage] = useState<Page>('Overview')
   const [globalModal, setGlobalModal] = useState<'integrations' | 'github' | 'settings' | null>(null)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [onboarding, setOnboarding] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
   const [refreshing, setRefreshing] = useState(false)
@@ -331,6 +661,16 @@ function App(): React.ReactElement {
   useEffect(() => { document.documentElement.dataset.theme = theme }, [theme])
   useEffect(() => { window.localStorage.setItem('devbox:sidebar-width:v1', String(sidebarWidth)) }, [sidebarWidth])
   useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent): void => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setCommandPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [])
+  useEffect(() => {
     if (!isResizing) return
     const move = (event: PointerEvent): void => {
       if (!resizeStart.current) return
@@ -349,10 +689,28 @@ function App(): React.ReactElement {
   const modalContent = globalModal === 'github' ? <GitHubConnect integration={globalIntegration ?? undefined} assignedRepositories={[]} refresh={refreshData} /> : globalModal === 'settings' ? <GlobalSettingsView theme={theme} githubConnected={!!globalIntegration} onToggle={toggleTheme} /> : <GlobalIntegrationDirectory github={integration} jira={jiraIntegration ?? undefined} openGitHub={() => setGlobalModal('github')} openJira={() => { setGlobalModal(null); setPage('Jira') }} />
   return <div className={'app-shell ' + (isResizing ? 'is-resizing' : '')} style={{ '--workspace-sidebar-width': sidebarWidth + 'px' } as React.CSSProperties}>
     <WorkspaceRail current={current} workspaces={workspaces} select={switchWorkspace} integrations={() => setGlobalModal('integrations')} settings={() => setGlobalModal('settings')} theme={theme} toggleTheme={toggleTheme} />
-    <Sidebar current={current} workspaces={workspaces} page={page} assignedRepositories={assignedRepositories} menuOpen={menuOpen} creating={creating} setMenuOpen={setMenuOpen} setCreating={setCreating} setPage={setPage} select={switchWorkspace} done={finishWorkspaceChange} openGlobalIntegrations={() => setGlobalModal('integrations')} />
+    <Sidebar current={current} workspaces={workspaces} page={page} assignedRepositories={assignedRepositories} menuOpen={menuOpen} creating={creating} setMenuOpen={setMenuOpen} setCreating={setCreating} setPage={setPage} select={switchWorkspace} done={finishWorkspaceChange} openCommandPalette={() => setCommandPaletteOpen(true)} />
     <div className="sidebar-resizer" role="separator" aria-label="Resize workspace sidebar" aria-orientation="vertical" aria-valuemin={MIN_SIDEBAR_WIDTH} aria-valuemax={MAX_SIDEBAR_WIDTH} aria-valuenow={sidebarWidth} tabIndex={0} onPointerDown={startResize} onKeyDown={resizeWithKeyboard} />
     <main className="main-content"><header className="topbar"><div className="breadcrumb"><Boxes size={17} /><span>DevBox</span><ChevronDown size={15} /><b>{title}</b></div><div className="topbar-actions"><span className="sync-pill"><i />{refreshing ? 'Syncing…' : relativeRefreshTime(integration?.lastSyncedAt ?? jiraIntegration?.lastSyncedAt ?? null)}</span><button className="topbar-button" onClick={refresh} aria-label="Refresh workspace" disabled={refreshing}><RefreshCw className={refreshing ? 'spin' : ''} size={17} />Sync</button></div></header><div className="content-body">{workspaceContent}</div></main>
     {globalModal && <GlobalModal section={globalModal} onClose={() => setGlobalModal(null)} onSelect={(section) => setGlobalModal(section)}>{modalContent}</GlobalModal>}
+    {commandPaletteOpen && current && (
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        currentWorkspace={current}
+        workspaces={workspaces}
+        selectWorkspace={switchWorkspace}
+        createWorkspace={() => { setMenuOpen(true); setCreating(true) }}
+        setPage={setPage}
+        openGlobalModal={setGlobalModal}
+        toggleTheme={toggleTheme}
+        currentTheme={theme}
+        syncWorkspace={refresh}
+        refreshing={refreshing}
+        hasGitHub={Boolean(globalIntegration)}
+        assignedRepositories={assignedRepositories}
+      />
+    )}
   </div>
 }
 

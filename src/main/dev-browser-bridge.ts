@@ -13,40 +13,6 @@ const githubSummary = (store: DevBoxStore): unknown => {
     : null
 }
 
-function ensureWorkspaceWorkItems(store: DevBoxStore, workspaceId: string, repository: string): void {
-  if (store.workItems(workspaceId).length > 0) return
-  const now = new Date()
-  store.replaceWorkspaceGitHubWork(workspaceId, [
-    {
-      repository,
-      title: 'Review: Improve error handling and retry mechanism',
-      reason: 'Review requested from you',
-      priority: 'high',
-      url: `https://github.com/${repository}/pull/101`,
-      updatedAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
-      kind: 'pr'
-    },
-    {
-      repository,
-      title: 'Fix race condition during repository sync',
-      reason: 'CI failing on your PR',
-      priority: 'urgent',
-      url: `https://github.com/${repository}/pull/102`,
-      updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
-      kind: 'pr'
-    },
-    {
-      repository,
-      title: 'Support multi-repository views in workspace attention stream',
-      reason: 'Issue assigned to you',
-      priority: 'normal',
-      url: `https://github.com/${repository}/issues/42`,
-      updatedAt: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
-      kind: 'issue'
-    }
-  ])
-}
-
 export function startDevBrowserBridge(
   store: DevBoxStore,
   github?: GitHubService,
@@ -104,15 +70,7 @@ export function startDevBrowserBridge(
       return
     }
     if (path === '/github/work-items' && workspaceId && request.method === 'GET') {
-      let items = store.workItems(workspaceId)
-      if (items.length === 0) {
-        const assigned = store.assignedRepositories(workspaceId)
-        if (assigned.length > 0 && assigned[0]) {
-          ensureWorkspaceWorkItems(store, workspaceId, assigned[0])
-          items = store.workItems(workspaceId)
-        }
-      }
-      finish(items)
+      finish(store.workItems(workspaceId))
       return
     }
     if (path === '/dashboard' && workspaceId && request.method === 'GET') {
@@ -172,9 +130,6 @@ export function startDevBrowserBridge(
                 console.warn('GitHub refresh warning:', err)
               }
             }
-            if (store.workItems(targetWorkspaceId).length === 0) {
-              ensureWorkspaceWorkItems(store, targetWorkspaceId, repositories[0])
-            }
           }
           finish(store.assignedRepositories(targetWorkspaceId))
           return
@@ -188,10 +143,6 @@ export function startDevBrowserBridge(
             } catch (err) {
               console.warn('GitHub refresh warning:', err)
             }
-          }
-          const assigned = store.assignedRepositories(targetWorkspaceId)
-          if (assigned.length > 0 && assigned[0] && store.workItems(targetWorkspaceId).length === 0) {
-            ensureWorkspaceWorkItems(store, targetWorkspaceId, assigned[0])
           }
           finish({ success: true })
           return
