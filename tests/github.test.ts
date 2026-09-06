@@ -11,6 +11,16 @@ const response = (value: unknown, status = 200): Response => new Response(JSON.s
 afterEach(() => { stores.splice(0).forEach((item) => item.close()); vi.unstubAllGlobals() })
 
 describe('repository-scoped GitHub sync', () => {
+  it('refreshes every repository page so recently updated repositories are available', async () => {
+    const db = store(); const integrationId = db.createGlobalGitHub('octocat', Buffer.from('encrypted'), ['octocat/old'])
+    const calls: string[]=[]
+    vi.stubGlobal('fetch', vi.fn(async (input: string) => { calls.push(input); const url=new URL(input); if(url.pathname==='/user') return response({login:'octocat'}); if(url.pathname==='/user/repos'&&url.searchParams.get('page')==='1') return response(Array.from({length:100},(_,index)=>({full_name:`octocat/repository-${index}`}))); if(url.pathname==='/user/repos'&&url.searchParams.get('page')==='2') return response([{full_name:'pateash/devbox'}]); return response({},404) }))
+    await new GitHubService(db,{decrypt:()=> 'token'} as never).refreshGlobal()
+    expect(db.globalGitHub()?.repositories).toContain('pateash/devbox')
+    expect(calls.filter((url)=>url.includes('/user/repos')).map((url)=>new URL(url).searchParams.get('page'))).toEqual(['1','2'])
+    expect(db.globalGitHub()?.id).toBe(integrationId)
+  })
+
   it('stores only assigned-repository actionable PRs and assigned issues', async () => {
     const db = store(); const workspace = db.createWorkspace('Acme'); db.createGlobalGitHub('octocat', Buffer.from('encrypted'), ['octocat/api']); db.setAssignedRepositories(workspace.id, ['octocat/api'])
     const calls: string[] = []

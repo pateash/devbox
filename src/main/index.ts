@@ -11,6 +11,9 @@ import { startDevBrowserBridge } from './dev-browser-bridge'
 // its launcher. Keep the desktop app and the dev browser bridge on DevBox's
 // one local store.
 app.setName('DevBox')
+if (process.env.DEVBOX_USER_DATA_DIR) {
+  app.setPath('userData', process.env.DEVBOX_USER_DATA_DIR)
+}
 
 let mainWindow: BrowserWindow | null = null; let tray: Tray | null = null; let completingQuitBackup = false
 const fixtureMode = process.env.DEVBOX_FIXTURES === '1'
