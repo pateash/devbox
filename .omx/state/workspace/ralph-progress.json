@@ -1,0 +1,21 @@
+{
+  "task": "workspace integration overhaul",
+  "phase": "executing",
+  "visual_verdict": {
+    "score": 92,
+    "verdict": "pass",
+    "category_match": true,
+    "differences": [
+      "The current sidebar is organized around personal inbox buckets and a Tools section rather than workspace work domains.",
+      "The empty state narrows setup to repositories even when Jira is available."
+    ],
+    "suggestions": [
+      "Use Overview plus Git and Tickets as the sidebar's persistent work sections.",
+      "Make Integrations a workspace setup surface with GitHub repository and Jira project scope."
+    ],
+    "reasoning": "The current visual shell is a suitable base, but its information architecture does not match the requested workspace-first model.",
+    "next_actions": [
+      "Update the renderer navigation and first-run setup copy."
+    ]
+  }
+}

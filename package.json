@@ -5,7 +5,7 @@
   "description": "A local-first developer attention workspace",
   "main": "out/main/index.js",
   "scripts": {
-    "dev": "env -u NODE_OPTIONS electron-vite dev",
+    "dev": "env -u NODE_OPTIONS electron-vite dev --watch",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",

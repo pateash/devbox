@@ -197,13 +197,16 @@ button:focus-visible, input:focus-visible { outline: 3px solid #c87fd0; outline-
 .token-form input { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #cfc3d2; border-radius: 8px; outline: 0; color: #302433; font: inherit; }
 .token-form input:focus { border-color: #94429d; box-shadow: 0 0 0 3px #8e3f951f; }
 .token-form p { margin: 0 0 3px; color: #746979; font-size: 12px; line-height: 1.45; }
-.token-form button { justify-self: start; }
+.token-form button { justify-self: start; padding: 9px 13px; border: 1px solid #8f3f97; border-radius: 7px; background: #7e3387; color: #fff; font-size: 13px; font-weight: 750; box-shadow: 0 1px 2px #18061933; }
+.token-form button:hover { background: #933d9d; }
 .error { color: #b73535; font-size: 13px; }
 .coming-soon { padding: 5px 8px; border-radius: 999px; background: #f0e7f2; color: #71417a; font-size: 12px; font-weight: 750; }
 .planned-tool { border-style: solid; }
 .settings-view { padding: 30px; }
 .settings-view > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 25px; padding-top: 22px; border-top: 1px solid #e8e0e9; }
 .settings-view h2 { margin: 0; font-size: 16px; }
+.settings-view .danger-button { border-color: #c55a5a; background: #8f3035; color: #fff; }
+.settings-view .danger-button:hover { background: #a6383e; }
 .backup-settings { display: grid !important; align-items: start !important; justify-content: stretch !important; gap: 13px; }
 .backup-settings > div { margin: 0; padding: 0; border: 0; }
 .backup-warning { margin: 0; padding: 11px 12px; border: 1px solid #e8c870; border-radius: 8px; background: #fff8df; color: #725514 !important; line-height: 1.45; }
@@ -276,7 +279,12 @@ button:focus-visible, input:focus-visible { outline: 3px solid #c87fd0; outline-
 
 @media (max-width: 760px) {
   body { min-width: 0; }
-  .workspace-rail, .sidebar-resizer { display: none; }
+  .workspace-rail { width: 52px; flex-basis: 52px; display: flex; gap: 10px; padding: 10px 6px; }
+  .workspace-avatar { width: 38px; height: 38px; border-radius: 10px; }
+  .workspace-avatars, .rail-actions { gap: 8px; }
+  .traffic-lights { display: none; }
+  .rail-button { width: 34px; height: 34px; }
+  .sidebar-resizer { display: none; }
   .workspace-sidebar { width: 72px; flex-basis: 72px; padding: 14px 9px; }
   .workspace-switcher { justify-content: center; font-size: 0; }
   .workspace-switcher svg, .compose-button, .tool-copy, .tool-status, .tool-presence, .tool-group-label, .sidebar-footer span, .tools-heading span { display: none; }

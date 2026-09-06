@@ -1,4 +1,4 @@
-import type { BackupRepository, BackupStatus, DevBoxApi, IntegrationSummary, Theme, Workspace, WorkspaceSummary, WorkItem } from '../shared/contracts'
+import type { BackupRepository, BackupStatus, DevBoxApi, GitHubIntegrationSummary, Theme, Workspace, WorkspaceSummary, WorkItem } from '../shared/contracts'
 
 type BrowserState = { workspaces: Workspace[]; currentId: string; themes: Record<string, Theme> }
 const KEY = 'devbox:browser-preview:v1'
@@ -22,7 +22,8 @@ export function createBrowserDevboxApi(): DevBoxApi {
       select:async(id)=>remote<Workspace>('/workspaces/select',{method:'POST',body:JSON.stringify({id})})
     },
     dashboard:{get:async(workspaceId)=>remote(`/dashboard?workspaceId=${encodeURIComponent(workspaceId)}`)},
-    github:{connectPersonalAccessToken:async()=>{throw new Error('GitHub connections are available only in the DevBox desktop app.');},global:async()=>remote<IntegrationSummary|null>('/github/global'),assignedRepositories:async(workspaceId)=>remote<string[]>(`/github/assigned?workspaceId=${encodeURIComponent(workspaceId)}`),setAssignedRepositories:async()=>undefined,refreshGlobal:async()=>undefined,refreshWorkspace:async()=>undefined,disconnect:async()=>undefined,workItems:async(workspaceId)=>remote<WorkItem[]>(`/github/work-items?workspaceId=${encodeURIComponent(workspaceId)}`)},
+    github:{connectPersonalAccessToken:async()=>{throw new Error('GitHub connections are available only in the DevBox desktop app.');},global:async()=>remote<GitHubIntegrationSummary|null>('/github/global'),assignedRepositories:async(workspaceId)=>remote<string[]>(`/github/assigned?workspaceId=${encodeURIComponent(workspaceId)}`),setAssignedRepositories:async()=>undefined,refreshGlobal:async()=>undefined,refreshWorkspace:async()=>undefined,disconnect:async()=>undefined,workItems:async(workspaceId)=>remote<WorkItem[]>(`/github/work-items?workspaceId=${encodeURIComponent(workspaceId)}`)},
+    jira:{connect:async()=>{throw new Error('Jira connections are available only in the DevBox desktop app.');},get:async()=>null,setProjects:async()=>undefined,refresh:async()=>undefined,disconnect:async()=>undefined,workItems:async()=>[]},
     backups:{status:async():Promise<BackupStatus>=>({repository:null,lastBackedUpAt:null,lastCommitUrl:null,lastError:null,dirty:false}),repositories:async():Promise<BackupRepository[]>=>[],connectToken:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},configure:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},run:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},restoreLatest:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');}},
     preferences:{getTheme:async(workspaceId)=>read().themes[workspaceId]??'dark',setTheme:async(workspaceId,theme)=>{const state=read(); state.themes[workspaceId]=theme; write(state)}},
     links:{openExternal:async(url)=>{window.open(url,'_blank','noopener,noreferrer')}},

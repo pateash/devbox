@@ -3,10 +3,13 @@ import { z } from 'zod'
 import { DevBoxStore } from './storage'
 import { isSafeExternalUrl } from './urls'
 import { GitHubService } from './github'
+import { JiraService } from './jira'
 const id = z.string().uuid(); const name = z.object({ name: z.string() }); const confirmation = z.object({ confirmationName: z.string() }); const theme = z.enum(['dark', 'light', 'system'])
 const backupRepositoryId = z.number().int().positive()
 const changed = () => BrowserWindow.getAllWindows().forEach((window) => window.webContents.send('workspace-data-changed'))
-export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: GitHubService): void {
+const jiraConnect = z.object({ workspaceId:z.string().uuid(), deployment:z.enum(['cloud','data-center']), baseUrl:z.string().url().max(2048), email:z.string().email().max(320).optional(), token:z.string().min(1).max(4096) })
+const jiraProject = z.object({key:z.string().min(1).max(128),name:z.string().min(1).max(255)})
+export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: GitHubService, jira: JiraService): void {
   ipcMain.handle('workspaces:list', () => store.listWorkspaces())
   ipcMain.handle('workspaces:create', (_e, input) => { const result = store.createWorkspace(name.parse(input).name); changed(); return result })
   ipcMain.handle('workspaces:rename', (_e, workspaceId, input) => { const result = store.renameWorkspace(id.parse(workspaceId), name.parse(input).name); changed(); return result })
@@ -23,6 +26,12 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   ipcMain.handle('github:refreshWorkspace', async (_e, workspaceId) => { await github.refreshWorkspace(id.parse(workspaceId)); changed() })
   ipcMain.handle('github:disconnect', () => { store.removeGlobalGitHub(); changed() })
   ipcMain.handle('github:workItems', (_e, workspaceId) => store.workItems(id.parse(workspaceId)))
+  ipcMain.handle('jira:connect', async (_e, input) => { const result=await jira.connect(jiraConnect.parse(input)); changed(); const integration=result.integration; if(!integration) throw new Error('Jira integration was not created.'); return {integration:{id:integration.id,provider:'jira' as const,state:integration.state,displayName:integration.displayName,lastSyncedAt:integration.lastSyncedAt,lastError:integration.lastError,deployment:integration.deployment,baseUrl:integration.baseUrl,projects:integration.projects},projects:result.projects} })
+  ipcMain.handle('jira:get', (_e, workspaceId) => { const integration=store.jiraIntegration(id.parse(workspaceId)); return integration ? {id:integration.id,provider:'jira' as const,state:integration.state,displayName:integration.displayName,lastSyncedAt:integration.lastSyncedAt,lastError:integration.lastError,deployment:integration.deployment,baseUrl:integration.baseUrl,projects:integration.projects}:null })
+  ipcMain.handle('jira:setProjects', async (_e, workspaceId, projects) => { const workspace=id.parse(workspaceId); store.setJiraProjects(workspace,z.array(jiraProject).min(1).max(100).parse(projects)); await jira.refresh(workspace); changed() })
+  ipcMain.handle('jira:refresh', async (_e, workspaceId) => { await jira.refresh(id.parse(workspaceId)); changed() })
+  ipcMain.handle('jira:disconnect', (_e, workspaceId) => { store.removeJira(id.parse(workspaceId)); changed() })
+  ipcMain.handle('jira:workItems', (_e, workspaceId) => store.jiraWorkItems(id.parse(workspaceId)))
   ipcMain.handle('backups:status', () => store.backupStatus())
   ipcMain.handle('backups:repositories', () => github.backupRepositories())
   ipcMain.handle('backups:connectToken', (_e, token) => github.connectBackupToken(z.string().min(1).max(4096).parse(token)))
@@ -31,5 +40,5 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   ipcMain.handle('backups:restoreLatest', async (_e, restoreConfirmation) => { if(restoreConfirmation!=='RESTORE') throw new Error('Type RESTORE to replace local DevBox data.'); await github.restoreLatest(); changed() })
   ipcMain.handle('preferences:getTheme', (_e, workspaceId) => store.getTheme(id.parse(workspaceId)))
   ipcMain.handle('preferences:setTheme', (_e, workspaceId, value) => { store.setTheme(id.parse(workspaceId), theme.parse(value)); changed() })
-  ipcMain.handle('links:openExternal', async (_e, url) => { if (!isSafeExternalUrl(z.string().parse(url))) throw new Error('Only stored GitHub and Jira HTTPS links may be opened.'); await shell.openExternal(url) })
+  ipcMain.handle('links:openExternal', async (_e, url) => { if (!isSafeExternalUrl(z.string().parse(url),store.jiraOrigins())) throw new Error('Only stored GitHub and Jira HTTPS links may be opened.'); await shell.openExternal(url) })
 }
