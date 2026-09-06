@@ -87,4 +87,37 @@ test.describe('Workspace Lifecycle', () => {
     // Active workspace should automatically fallback to remaining workspace "First Project"
     await expect(mainWindow.locator('.workspace-switcher')).toContainText('First Project')
   })
+
+  test('rejects whitespace-only workspace names with validation error', async ({ mainWindow }) => {
+    // Attempt submitting whitespace name
+    await mainWindow.locator('#workspace-name').fill('   ')
+    await mainWindow.locator('button[type="submit"]:has-text("Save")').click()
+
+    // Form should show error message and not navigate away
+    const errorMessage = mainWindow.locator('.workspace-form .error')
+    await expect(errorMessage).toBeVisible()
+    await expect(errorMessage).toContainText('Workspace name must be between 1 and 80 characters.')
+    await expect(mainWindow.locator('.app-shell')).not.toBeVisible()
+  })
+
+  test('rejects duplicate workspace names case-insensitively', async ({ mainWindow }) => {
+    // 1. Create first workspace
+    await mainWindow.locator('#workspace-name').fill('DevBox Core')
+    await mainWindow.locator('button[type="submit"]:has-text("Save")').click()
+    await expect(mainWindow.locator('.app-shell')).toBeVisible()
+
+    // 2. Open workspace create form
+    await mainWindow.locator('.workspace-switcher').click()
+    await mainWindow.locator('.create-workspace-action').click()
+
+    // 3. Try to create duplicate workspace with different case
+    const input = mainWindow.locator('.workspace-menu #workspace-name')
+    await input.fill('devbox core')
+    await input.press('Enter')
+
+    // 4. Form should display duplicate error
+    const errorSpan = mainWindow.locator('.workspace-menu .error')
+    await expect(errorSpan).toBeVisible()
+  })
 })
+

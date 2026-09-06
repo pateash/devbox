@@ -18,8 +18,8 @@ test.describe('Navigation and Theme Settings', () => {
     // 2. Navigate to Git (GitHub)
     await mainWindow.locator('nav.primary-nav button:has-text("Git")').click()
     await expect(mainWindow.locator('.topbar .breadcrumb b')).toHaveText('Git')
-    await expect(mainWindow.locator('.integration-empty h2')).toContainText(
-      'Bring GitHub into this workspace'
+    await expect(mainWindow.locator('.empty-state h2')).toHaveText(
+      'Attach a repository to Git'
     )
 
     // 3. Navigate to Tickets (Jira)
@@ -29,11 +29,12 @@ test.describe('Navigation and Theme Settings', () => {
       'Bring Jira into this workspace'
     )
 
-    // 4. Navigate to Integrations catalog
-    await mainWindow.locator('.tools-heading button:has-text("Integrations")').click()
-    await expect(mainWindow.locator('.topbar .breadcrumb b')).toHaveText('Integrations')
-    await expect(mainWindow.locator('.integration-directory h1')).toHaveText('Integrations')
-    await expect(mainWindow.locator('.integration-grid')).toBeVisible()
+    // 4. Navigate to Global integrations
+    await mainWindow.locator('.tools-heading button:has-text("Global integrations")').click()
+    await expect(mainWindow.locator('.topbar .breadcrumb b')).toHaveText('Global integrations')
+    await expect(mainWindow.locator('.integration-empty h2')).toContainText(
+      'Bring GitHub into this workspace'
+    )
 
     // 5. Navigate back to Overview
     await mainWindow.locator('nav.primary-nav button:has-text("Overview")').click()

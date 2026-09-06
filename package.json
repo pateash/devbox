@@ -9,14 +9,13 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:unit": "vitest run",
-    "test:watch": "vitest",
+    "test": "ELECTRON_RUN_AS_NODE=1 electron ./node_modules/vitest/vitest.mjs run",
+    "test:unit": "ELECTRON_RUN_AS_NODE=1 electron ./node_modules/vitest/vitest.mjs run",
+    "test:watch": "ELECTRON_RUN_AS_NODE=1 electron ./node_modules/vitest/vitest.mjs",
     "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings=0",
     "package:mac": "npm run build && electron-builder --mac dmg",
-    "rebuild:native": "electron-builder install-app-deps",
-    "rebuild:node": "npm rebuild better-sqlite3"
+    "rebuild:native": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",

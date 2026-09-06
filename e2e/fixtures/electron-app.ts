@@ -11,18 +11,22 @@ type ElectronFixtures = {
 
 type ElectronOptions = {
   enableFixtures: boolean
+  customUserDataDir?: string
 }
 
 export const test = base.extend<ElectronFixtures & ElectronOptions>({
   enableFixtures: [true, { option: true }],
+  customUserDataDir: [undefined, { option: true }],
 
-  userDataDir: async ({}, use) => {
-    const dir = mkdtempSync(join(tmpdir(), 'devbox-e2e-'))
+  userDataDir: async ({ customUserDataDir }, use) => {
+    const dir = customUserDataDir || mkdtempSync(join(tmpdir(), 'devbox-e2e-'))
     await use(dir)
-    try {
-      rmSync(dir, { recursive: true, force: true })
-    } catch {
-      // Ignore cleanup error if files are locked during exit
+    if (!customUserDataDir) {
+      try {
+        rmSync(dir, { recursive: true, force: true })
+      } catch {
+        // Ignore cleanup error if files are locked during exit
+      }
     }
   },
 
@@ -33,7 +37,8 @@ export const test = base.extend<ElectronFixtures & ElectronOptions>({
       env: {
         ...process.env,
         DEVBOX_USER_DATA_DIR: userDataDir,
-        DEVBOX_FIXTURES: enableFixtures ? '1' : '0'
+        DEVBOX_FIXTURES: enableFixtures ? '1' : '0',
+        DEVBOX_HEADLESS: '1'
       }
     })
 
