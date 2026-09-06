@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'primary-fixed': '#ffd6fa', 'on-tertiary-fixed': '#350437', 'background': '#111417', 'icon-badge-bg': '#30263a', 'border-input': '#3d424a', 'tertiary-fixed': '#ffd6f7', 'surface': '#111417', 'outline': '#9c8c99', 'inverse-on-surface': '#2e3135', 'danger-fill': '#8f3035', 'on-background': '#e1e2e8', 'on-primary-container': '#ffe6fa', 'text-muted': '#746979', 'badge-planned-text': '#e3b9e7', 'surface-container': '#1d2024', 'badge-planned-bg': '#3b2b41', 'rail-hover': '#54205a', 'on-secondary-fixed-variant': '#70267a', 'on-tertiary': '#4e1c4e', 'on-error-container': '#ffdad6', 'primary-hover': '#933d9d', 'sidebar-search-border': '#6a526d', 'secondary-fixed': '#ffd6fc', 'on-secondary': '#560761', 'secondary-container': '#73287c', 'danger-text': '#a83939', 'sidebar-bg': '#1f1324', 'tertiary': '#f4b1ec', 'on-tertiary-container': '#ffe5f8', 'icon-badge-fg': '#d994df', 'secondary-fixed-dim': '#fbaaff', 'status-presence': '#36d17c', 'on-error': '#690005', 'sidebar-border': '#39263f', 'rail-border': '#652765', 'surface-variant': '#323539', 'focus-glow': 'rgba(142, 63, 149, 0.15)', 'badge-available-bg': '#1d4930', 'rail-bg': '#3f0e40', 'error-container': '#93000a', 'sidebar-active': '#ffffff17', 'primary-container': '#a047a5', 'tertiary-fixed-dim': '#f4b1ec', 'outline-variant': '#50434e', 'inverse-primary': '#913997', 'on-surface': '#e1e2e8', 'on-surface-variant': '#d4c1cf', 'status-caution': '#dc9a32', 'surface-bright': '#36393e', 'on-primary-fixed-variant': '#761e7d', 'on-secondary-fixed': '#36003e', 'secondary': '#fbaaff', 'surface-container-low': '#191c20', 'surface-container-highest': '#323539', 'surface-container-lowest': '#0b0e12', 'surface-container-high': '#272a2e', 'text-dim': '#aeb3bc', 'text-secondary': '#b9bdc5', 'border-divider': '#30343b', 'text-primary': '#f2f2f2', 'primary': '#ffa9fe', 'badge-available-text': '#9ae2b2', 'tertiary-container': '#90578c', 'status-success': '#43d17d', 'surface-card': '#222529', 'surface-elevated': '#302236', 'on-secondary-container': '#f099f5', 'error': '#ffb4ab', 'sidebar-search': '#17101b', 'focus-ring': '#c87fd0', 'surface-dim': '#111417', 'on-primary': '#590061', 'surface-tint': '#ffa9fe', 'danger-border': '#dca1a1', 'border-subtle': '#383c43', 'on-primary-fixed': '#36003c', 'primary-fixed-dim': '#ffa9fe', 'canvas-bg': '#1a1d21', 'inverse-surface': '#e1e2e8', 'status-urgent': '#e3514d', 'on-tertiary-fixed-variant': '#673366' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'gutter-sm': '8px', 'sidebar-default': '308px', 'sidebar-max': '480px', 'gutter-xs': '4px', 'unit': '4px', 'gutter-xl': '24px', 'sidebar-min': '240px', 'canvas-max-width': '1120px', 'gutter-md': '12px', 'gutter-3xl': '48px', 'gutter-lg': '16px', 'rail-width': '76px', 'topbar-height': '70px', 'gutter-2xl': '32px' }, 'fontFamily': { 'badge-count': ['Inter'], 'body-base': ['Inter'], 'meta-detail': ['Inter'], 'eyebrow-caps': ['Inter'], 'heading-h2': ['Inter'], 'section-h2': ['Inter'], 'button-label': ['Inter'], 'display-h1': ['Inter'], 'body-bold': ['Inter'], 'heading-repo': ['Inter'], 'caption': ['Inter'], 'body-compact': ['Inter'] }, 'fontSize': { 'badge-count': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0', 'fontWeight': '700' }], 'body-base': ['15px', { 'lineHeight': '22px', 'letterSpacing': '0', 'fontWeight': '400' }], 'meta-detail': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0', 'fontWeight': '400' }], 'eyebrow-caps': ['11px', { 'lineHeight': '16px', 'letterSpacing': '0.06em', 'fontWeight': '700' }], 'heading-h2': ['20px', { 'lineHeight': '26px', 'letterSpacing': '-0.025em', 'fontWeight': '700' }], 'section-h2': ['17px', { 'lineHeight': '22px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'button-label': ['13px', { 'lineHeight': '18px', 'letterSpacing': '0', 'fontWeight': '700' }], 'display-h1': ['29px', { 'lineHeight': '36px', 'letterSpacing': '-0.04em', 'fontWeight': '700' }], 'body-bold': ['15px', { 'lineHeight': '22px', 'letterSpacing': '0', 'fontWeight': '600' }], 'heading-repo': ['24px', { 'lineHeight': '30px', 'letterSpacing': '-0.035em', 'fontWeight': '700' }], 'caption': ['13px', { 'lineHeight': '18px', 'letterSpacing': '0', 'fontWeight': '400' }], 'body-compact': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0', 'fontWeight': '400' }] } } } };</script></head><body class="bg-canvas-bg font-body-base text-text-primary min-h-screen"><aside class="fixed left-0 top-0 h-full w-rail-width bg-rail-bg border-r border-rail-border z-50 flex flex-col items-center pt-5 pb-5 select-none"><div class="flex items-center gap-[8px] mb-6"><div class="w-[12px] h-[12px] rounded-full bg-[#ff5f56]"></div><div class="w-[12px] h-[12px] rounded-full bg-[#ffbd2e]"></div><div class="w-[12px] h-[12px] rounded-full bg-[#27c93f]"></div></div><div class="flex flex-col items-center gap-3 w-full"><div class="relative group cursor-pointer"><div class="w-[48px] h-[48px] rounded-[13px] bg-primary-container flex items-center justify-center font-heading-h2 text-heading-h2 text-text-primary shadow-[0_0_0_2px_#f5bbf2]">DB</div><div class="absolute -bottom-0.5 -right-0.5 w-[13px] h-[13px] rounded-full bg-status-success ring-2 ring-rail-bg"></div></div><div class="relative group cursor-pointer"><div class="w-[48px] h-[48px] rounded-[13px] bg-[#301633] hover:bg-rail-hover transition-colors flex items-center justify-center font-heading-h2 text-heading-h2 text-text-muted">FS</div></div><div class="relative group cursor-pointer"><div class="w-[48px] h-[48px] rounded-[13px] bg-[#301633] hover:bg-rail-hover transition-colors flex items-center justify-center font-heading-h2 text-heading-h2 text-text-muted">AC</div></div></div><div class="mt-auto flex flex-col items-center gap-2.5 w-full"><button class="w-[38px] h-[38px] rounded-[10px] bg-transparent border border-outline-variant/40 hover:bg-rail-hover text-on-surface-variant hover:text-text-primary flex items-center justify-center transition-colors" title="Global Integrations" type="button"><span class="material-symbols-outlined text-[19px]">extension</span></button><button class="w-[38px] h-[38px] rounded-[10px] bg-transparent border border-outline-variant/40 hover:bg-rail-hover text-on-surface-variant hover:text-text-primary flex items-center justify-center transition-colors" title="Toggle Theme" type="button"><span class="material-symbols-outlined text-[19px]">dark_mode</span></button><button class="w-[38px] h-[38px] rounded-[10px] bg-transparent border border-outline-variant/40 hover:bg-rail-hover text-on-surface-variant hover:text-text-primary flex items-center justify-center transition-colors" title="Global Settings" type="button"><span class="material-symbols-outlined text-[19px]">settings</span></button></div></aside><aside class="fixed left-rail-width top-0 h-full w-sidebar-default bg-sidebar-bg border-r border-sidebar-border z-40 flex flex-col pb-4 select-none"><div class="h-topbar-height px-gutter-lg flex items-center justify-between border-b border-sidebar-border"><button class="flex items-center gap-gutter-sm text-left group" type="button"><span class="font-heading-h2 text-heading-h2 text-text-primary group-hover:text-primary transition-colors">DevBox</span><span class="material-symbols-outlined text-text-muted group-hover:text-text-primary text-[20px] transition-colors">expand_more</span></button><button class="w-[34px] h-[34px] rounded-lg border border-sidebar-border bg-sidebar-search hover:bg-surface-elevated text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">settings</span></button></div><div class="p-gutter-md"><button class="w-full flex items-center justify-between px-3 py-2 bg-sidebar-search border border-sidebar-search-border/60 hover:border-focus-ring rounded-lg text-text-muted hover:text-text-secondary transition-all shadow-inner" type="button"><div class="flex items-center gap-gutter-sm"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-caption text-caption text-text-muted">Find a section or integration</span></div><kbd class="font-caption text-caption px-1.5 py-0.5 rounded bg-surface-elevated border border-sidebar-border text-text-dim text-[11px]">⌘K</kbd></button></div><nav class="flex-1 px-gutter-xs space-y-0.5 overflow-y-auto" data-active-classes="bg-surface-elevated text-text-primary font-body-bold border-l-2 border-primary"><div class="px-gutter-md py-1"><span class="font-eyebrow-caps text-eyebrow-caps text-text-muted uppercase tracking-wider">Workspace</span></div><a class="flex items-center gap-3 px-3 py-2 rounded-lg font-caption text-caption text-on-surface-variant hover:bg-sidebar-active hover:text-text-primary transition-colors" data-path="overview" href="#"><span class="material-symbols-outlined text-[19px] text-icon-badge-fg">dashboard</span><span>Overview</span></a><a class="flex items-center justify-between px-3 py-2 rounded-lg font-caption text-caption text-on-surface-variant hover:bg-sidebar-active hover:text-text-primary transition-colors" data-path="git" href="#"><div><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px] text-icon-badge-fg">commit</span><span>Git</span></div></div><div class="w-2 h-2 rounded-full bg-status-success"></div></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg font-caption text-caption text-on-surface-variant hover:bg-sidebar-active hover:text-text-primary transition-colors" data-path="tickets" href="#"><span class="material-symbols-outlined text-[19px] text-icon-badge-fg">radio_button_checked</span><span>Tickets</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-surface-elevated text-text-primary font-body-bold border-l-2 border-primary" data-path="integrations" href="#"><span class="material-symbols-outlined text-[19px] text-icon-badge-fg">widgets</span><span>Integrations</span></a><div class="my-gutter-sm mx-3 border-t border-sidebar-border"></div><div class="flex items-center justify-between px-3 py-1 text-text-muted"><span class="font-eyebrow-caps text-eyebrow-caps uppercase tracking-wider">Global Integrations</span><button class="hover:text-text-primary transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">add</span></button></div><div class="px-3 py-1"><div class="flex items-center gap-2 text-text-muted hover:text-text-secondary text-caption font-caption py-1.5 cursor-pointer"><div class="w-1.5 h-1.5 rounded-full bg-status-success"></div><span class="truncate">Workspace repository: pateash/devbox</span></div></div></nav><div class="p-gutter-md border-t border-sidebar-border"><div class="flex items-center justify-between px-2.5 py-1.5 rounded bg-sidebar-search border border-sidebar-border"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-status-success text-[14px]">wifi_off</span><span class="font-eyebrow-caps text-eyebrow-caps text-text-muted uppercase">Local-first mode</span></div><span class="font-badge-count text-badge-count text-badge-available-text bg-badge-available-bg px-1.5 py-0.5 rounded-full">Ready</span></div></div></aside><div class="pl-[384px]"><header class="fixed top-0 left-[384px] right-0 h-topbar-height bg-canvas-bg/95 backdrop-blur-md border-b border-border-subtle z-30 flex items-center justify-between px-gutter-xl"><div class="flex items-center gap-gutter-md"><img alt="DevBox App Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WdxTPJwTW4WNyDryjqGbJrlrDpXM7X7lhTxWYVRMIXuKHX8FU0qJjLlKB1X40k5rfCduqSCpe0aCkPrMQNT92UAL0pN28maUIeipKmdDVY0PHN_iM94vAXQHuXuk5C8gHMWJ_y_fhFFme427HFp3e2_MjstSFWAprIRbUio7_UwEGmNHwafMviuuN-x99PWCbHJr3Wir6BVJtEIui1NXAyLdSwp-_I3AA3bMPZUQQv5aCbOAdFJEJYDsNF"/><div class="flex items-center gap-2 font-caption text-caption text-text-secondary"><span class="text-text-muted">DevBox</span><span class="text-text-muted">/</span><span class="text-text-primary font-body-bold">Workspace</span></div></div><div class="flex items-center gap-gutter-md"><div class="flex items-center gap-2 font-meta-detail text-meta-detail text-text-secondary bg-surface-card border border-border-divider px-2.5 py-1.5 rounded-md"><span class="w-2 h-2 rounded-full bg-status-success"></span><span>Refreshed 2 min ago</span></div><button class="h-[32px] px-2.5 rounded-md bg-surface-card border border-border-divider hover:border-focus-ring text-text-secondary hover:text-text-primary flex items-center gap-1.5 font-caption text-caption transition-colors" title="Refresh current state" type="button"><span class="material-symbols-outlined text-[16px]">refresh</span><span>Sync</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-topbar-height bg-canvas-bg min-h-screen"><div class="max-w-canvas-max-width mx-auto px-gutter-xl py-gutter-xl text-text-primary"><div class="flex flex-col w-full gap-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-eyebrow-caps text-eyebrow-caps text-primary tracking-widest uppercase">This Workspace</span>
+<span class="text-text-muted text-meta-detail font-meta-detail">•</span>
+<span class="font-meta-detail text-meta-detail text-text-muted">Local Sync Engine v2.4</span>
+</div>
+<h1 class="font-heading-repo text-heading-repo text-text-primary tracking-tight">Integrations</h1>
+<p class="font-body-compact text-body-compact text-text-secondary max-w-2xl">
+        Connect code hosts, issue trackers, and monitoring tools to aggregate what needs your attention directly within your local environment.
+      </p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-card shadow-sm">
+<span class="w-2 h-2 rounded-full bg-status-presence animate-pulse"></span>
+<span class="font-meta-detail text-meta-detail text-text-secondary">All endpoints operational</span>
+</div>
+<button class="h-9 px-3 rounded-lg bg-primary-container text-on-primary-container hover:bg-primary-hover hover:text-text-primary font-button-label text-button-label flex items-center gap-1.5 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>Custom Webhook</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-surface-card p-3 rounded-xl shadow-md">
+<div class="md:col-span-3 relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-muted pointer-events-none text-[19px]">search</span>
+<input class="w-full bg-surface-container-lowest text-text-primary placeholder:text-text-muted rounded-lg pl-10 pr-12 py-2.5 font-body-compact text-body-compact outline-none focus:bg-surface-container-low transition-all duration-150" id="integration-search" placeholder="Search integrations by name, protocol, or tags (e.g., git, tickets, alerts)..." type="text"/>
+<kbd class="absolute right-3 px-1.5 py-0.5 rounded bg-surface-container text-text-dim text-[11px] font-caption">⌘F</kbd>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-text-muted pointer-events-none text-[18px]">filter_list</span>
+<select class="w-full appearance-none bg-surface-container-lowest text-text-secondary hover:text-text-primary rounded-lg pl-9 pr-8 py-2.5 font-body-compact text-body-compact outline-none transition-colors cursor-pointer" id="category-filter">
+<option value="all">All categories</option>
+<option value="git">Code &amp; Git</option>
+<option value="tickets">Issue Trackers</option>
+<option value="ci">CI / CD &amp; Builds</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 text-text-muted pointer-events-none text-[18px]">unfold_more</span>
+</div>
+</div>
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<h2 class="font-section-h2 text-section-h2 text-text-primary tracking-tight">Configured for this workspace</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-elevated text-primary font-badge-count text-badge-count">2</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-meta-detail text-meta-detail text-text-muted">Real-time background polling</span>
+<button class="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-container transition-colors" title="Manage credentials" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<div class="integration-item group bg-surface-card rounded-xl p-5 flex flex-col justify-between gap-5 hover:bg-surface-elevated/40 transition-all duration-200 shadow-sm" data-category="git" data-name="github">
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<div class="w-[44px] h-[44px] rounded-xl bg-icon-badge-bg flex items-center justify-center text-icon-badge-fg shrink-0 shadow-inner">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24">
+<path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-body-bold text-body-bold text-text-primary">GitHub</span>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-meta-detail text-meta-detail text-badge-available-text bg-badge-available-bg">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                  Connected globally
+                </span>
+</div>
+<p class="font-body-compact text-body-compact text-text-secondary mt-1">
+                Monitors assigned pull requests, requested reviews, and failing actions.
+              </p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-primary p-1 rounded hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[19px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex items-center gap-2 text-text-dim font-meta-detail text-meta-detail">
+<span class="material-symbols-outlined text-[16px] text-text-muted">source</span>
+<span class="font-medium text-text-secondary truncate max-w-[220px]">pateash/devbox</span>
+<span>•</span>
+<span>Synced 2m ago</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-button-label text-button-label transition-colors flex items-center gap-1" type="button">
+<span>Configure</span>
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="integration-item group bg-surface-card rounded-xl p-5 flex flex-col justify-between gap-5 hover:bg-surface-elevated/40 transition-all duration-200 shadow-sm" data-category="tickets" data-name="jira">
+<div class="flex items-start justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<div class="w-[44px] h-[44px] rounded-xl bg-icon-badge-bg flex items-center justify-center text-icon-badge-fg shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">task_alt</span>
+</div>
+<div>
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-body-bold text-body-bold text-text-primary">Jira Cloud</span>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-meta-detail text-meta-detail text-badge-available-text bg-badge-available-bg">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                  Connected
+                </span>
+</div>
+<p class="font-body-compact text-body-compact text-text-secondary mt-1">
+                Syncs sprint tickets, backlogged bugs, and priority mentions.
+              </p>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-primary p-1 rounded hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[19px]">more_vert</span>
+</button>
+</div>
+<div class="flex items-center justify-between pt-2">
+<div class="flex items-center gap-2 text-text-dim font-meta-detail text-meta-detail">
+<span class="material-symbols-outlined text-[16px] text-text-muted">folder_open</span>
+<span class="font-medium text-text-secondary">2 project keys: DEV, PLAT</span>
+<span>•</span>
+<span>Synced 5m ago</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-button-label text-button-label transition-colors flex items-center gap-1" type="button">
+<span>Configure</span>
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-4 pt-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<h2 class="font-section-h2 text-section-h2 text-text-primary tracking-tight">Add another integration</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-elevated text-badge-planned-text font-badge-count text-badge-count">3</span>
+</div>
+<span class="font-meta-detail text-meta-detail text-text-muted">Direct API &amp; Local CLI Drivers</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="integration-item bg-surface-card rounded-xl p-5 flex flex-col justify-between gap-5 relative overflow-hidden shadow-sm" data-category="git" data-name="bitbucket">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="w-[40px] h-[40px] rounded-xl bg-surface-container flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]">deployed_code</span>
+</div>
+<span class="font-meta-detail text-meta-detail text-badge-planned-text bg-badge-planned-bg px-2 py-0.5 rounded-full">
+              Planned
+            </span>
+</div>
+<div>
+<span class="font-body-bold text-body-bold text-text-primary">Bitbucket</span>
+<p class="font-caption text-caption text-text-secondary mt-1.5 line-clamp-2">
+              Connect Bitbucket Server or Cloud pull requests and pipelines with inline diff inspection.
+            </p>
+</div>
+</div>
+<div class="pt-2 flex items-center justify-between">
+<span class="font-meta-detail text-meta-detail text-text-dim">Roadmap Q3</span>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low text-text-muted cursor-not-allowed font-button-label text-button-label" disabled="" type="button">
+            Coming soon
+          </button>
+</div>
+</div>
+<div class="integration-item bg-surface-card rounded-xl p-5 flex flex-col justify-between gap-5 relative overflow-hidden shadow-sm" data-category="git" data-name="gitlab">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="w-[40px] h-[40px] rounded-xl bg-surface-container flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]">alt_route</span>
+</div>
+<span class="font-meta-detail text-meta-detail text-badge-planned-text bg-badge-planned-bg px-2 py-0.5 rounded-full">
+              Planned
+            </span>
+</div>
+<div>
+<span class="font-body-bold text-body-bold text-text-primary">GitLab</span>
+<p class="font-caption text-caption text-text-secondary mt-1.5 line-clamp-2">
+              Surface GitLab merge requests, pipeline alerts, and issue comments with offline draft replies.
+            </p>
+</div>
+</div>
+<div class="pt-2 flex items-center justify-between">
+<span class="font-meta-detail text-meta-detail text-text-dim">Roadmap Q3</span>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low text-text-muted cursor-not-allowed font-button-label text-button-label" disabled="" type="button">
+            Coming soon
+          </button>
+</div>
+</div>
+<div class="integration-item bg-surface-card rounded-xl p-5 flex flex-col justify-between gap-5 relative overflow-hidden shadow-sm" data-category="tickets" data-name="linear">
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="w-[40px] h-[40px] rounded-xl bg-surface-container flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]">view_timeline</span>
+</div>
+<span class="font-meta-detail text-meta-detail text-badge-planned-text bg-badge-planned-bg px-2 py-0.5 rounded-full">
+              Planned
+            </span>
+</div>
+<div>
+<span class="font-body-bold text-body-bold text-text-primary">Linear</span>
+<p class="font-caption text-caption text-text-secondary mt-1.5 line-clamp-2">
+              Track assigned issues, triage inbox, and cycle commitments with instant keyboard triage shortcuts.
+            </p>
+</div>
+</div>
+<div class="pt-2 flex items-center justify-between">
+<span class="font-meta-detail text-meta-detail text-text-dim">Roadmap Q3</span>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low text-text-muted cursor-not-allowed font-button-label text-button-label" disabled="" type="button">
+            Coming soon
+          </button>
+</div>
+</div>
+</div>
+</section>
+<div class="rounded-xl p-6 bg-surface-card/60 flex flex-col sm:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4 text-center sm:text-left">
+<div class="w-12 h-12 rounded-xl bg-surface-elevated flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[24px]">terminal</span>
+</div>
+<div>
+<h3 class="font-body-bold text-body-bold text-text-primary">Looking for custom internal toolchains?</h3>
+<p class="font-caption text-caption text-text-secondary">Write a lightweight local script using DevBox daemon sockets to dispatch alerts directly to your tray.</p>
+</div>
+</div>
+<a class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-elevated hover:bg-rail-hover text-text-primary font-button-label text-button-label transition-colors shrink-0" href="#">
+<span>Read SDK Docs</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</div>
+</div>
+<script>
+  (function() {
+    const searchInput = document.getElementById('integration-search');
+    const categorySelect = document.getElementById('category-filter');
+    const items = document.querySelectorAll('.integration-item');
+
+    function filterIntegrations() {
+      const query = (searchInput?.value || '').toLowerCase().trim();
+      const selectedCategory = categorySelect?.value || 'all';
+
+      items.forEach(card => {
+        const itemCategory = card.getAttribute('data-category') || '';
+        const itemName = card.getAttribute('data-name') || '';
+        const itemText = card.textContent?.toLowerCase() || '';
+
+        const matchesCategory = (selectedCategory === 'all') || (itemCategory === selectedCategory);
+        const matchesQuery = !query || itemText.includes(query) || itemName.includes(query);
+
+        if (matchesCategory && matchesQuery) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    searchInput?.addEventListener('input', filterIntegrations);
+    categorySelect?.addEventListener('change', filterIntegrations);
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+    });
+  })();
+</script></div></main></div></body></html>
