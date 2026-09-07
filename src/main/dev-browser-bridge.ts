@@ -1,6 +1,7 @@
 import { createServer, type Server } from 'node:http'
 import { DevBoxStore } from './storage'
 import type { GitHubService } from './github'
+import type { JiraService } from './jira'
 
 const githubSummary = (store: DevBoxStore): unknown => {
   const integration = store.globalGitHub()
@@ -16,6 +17,7 @@ const githubSummary = (store: DevBoxStore): unknown => {
 export function startDevBrowserBridge(
   store: DevBoxStore,
   github?: GitHubService,
+  jira?: JiraService,
   port = 4317
 ): Server | null {
   if (!process.env.ELECTRON_RENDERER_URL) return null
@@ -58,6 +60,24 @@ export function startDevBrowserBridge(
       finish(githubSummary(store))
       return
     }
+    if (path === '/github/list') {
+      finish(store.globalGitHubs().map((integration) => ({...integration, provider: 'github', repositories: integration.repositories.map((fullName) => ({fullName, selected:true}))})))
+      return
+    }
+    if (path === '/jira/global') {
+      const integration=store.globalJira()
+      finish(integration ? {...integration,provider:'jira'} : null)
+      return
+    }
+    if (path === '/jira/list') {
+      finish(store.globalJiras().map((integration) => ({...integration, provider: 'jira'})))
+      return
+    }
+    if (path === '/jira/projects' && request.method === 'GET') {
+      if (!jira) { finish({ error: 'Jira service unavailable.' }, 503); return }
+      void jira.availableProjects().then(finish).catch((error: unknown) => finish({ error: error instanceof Error ? error.message : 'Unable to load Jira projects.' }, 500))
+      return
+    }
     if (path === '/github/repository-owners' && request.method === 'GET') {
       if (!github) { finish({ error: 'GitHub service unavailable.' }, 503); return }
       void github.repositoryOwners().then(finish).catch((error: unknown) => finish({ error: error instanceof Error ? error.message : 'Unable to load GitHub owners.' }, 500))
@@ -71,6 +91,15 @@ export function startDevBrowserBridge(
     }
     if (path === '/github/work-items' && workspaceId && request.method === 'GET') {
       finish(store.workItems(workspaceId))
+      return
+    }
+    if (path === '/jira/work-items' && workspaceId && request.method === 'GET') {
+      finish(store.jiraWorkItems(workspaceId))
+      return
+    }
+    if (path === '/jira/workspace' && workspaceId && request.method === 'GET') {
+      const integration=store.jiraIntegration(workspaceId)
+      finish(integration ? {...integration,provider:'jira'} : null)
       return
     }
     if (path === '/dashboard' && workspaceId && request.method === 'GET') {
@@ -159,7 +188,7 @@ export function startDevBrowserBridge(
           return
         }
         if (path === '/github/disconnect' && request.method === 'POST') {
-          store.removeGlobalGitHub()
+          store.removeGlobalGitHub(typeof input.id==='string'?input.id:undefined)
           finish({ success: true })
           return
         }
@@ -167,8 +196,42 @@ export function startDevBrowserBridge(
           const token = typeof input.token === 'string' ? input.token : ''
           if (!token) throw new Error('Enter a GitHub personal access token.')
           if (!github) throw new Error('GitHub service unavailable.')
-          await github.connectPersonalAccessToken(token)
+          const name=typeof input.name==='string'?input.name:undefined
+          await github.connectPersonalAccessToken(token,name)
           finish(githubSummary(store))
+          return
+        }
+        if (path === '/jira/connect' && request.method === 'POST') {
+          if (!jira) throw new Error('Jira service unavailable.')
+          const deployment=input.deployment==='data-center'?'data-center':'cloud'
+          const baseUrl=typeof input.baseUrl==='string'?input.baseUrl:''
+          const email=typeof input.email==='string'?input.email:undefined
+          const token=typeof input.token==='string'?input.token:''
+          const name=typeof input.name==='string'?input.name:undefined
+          if (!baseUrl || !token) throw new Error('Jira base URL and token are required.')
+          const result=await jira.connect({deployment,baseUrl,email,token,name})
+          finish({integration:{...result.integration,provider:'jira'},projects:result.projects})
+          return
+        }
+        if (path === '/jira/project' && request.method === 'POST') {
+          const targetWorkspaceId=typeof input.workspaceId==='string'?input.workspaceId:''
+          const project=input.project as {key?:unknown;name?:unknown}
+          if(!targetWorkspaceId || typeof project?.key!=='string' || typeof project?.name!=='string') throw new Error('Workspace and Jira project are required.')
+          store.setJiraProject(targetWorkspaceId,{key:project.key,name:project.name})
+          if(jira) await jira.refresh(targetWorkspaceId)
+          finish({success:true})
+          return
+        }
+        if (path === '/jira/refresh' && request.method === 'POST') {
+          const targetWorkspaceId=typeof input.workspaceId==='string'?input.workspaceId:''
+          if(!targetWorkspaceId || !jira) throw new Error('Jira workspace refresh is unavailable.')
+          await jira.refresh(targetWorkspaceId)
+          finish({success:true})
+          return
+        }
+        if (path === '/jira/disconnect' && request.method === 'POST') {
+          store.removeGlobalJira(typeof input.id==='string'?input.id:undefined)
+          finish({success:true})
           return
         }
         throw new Error('Not found')

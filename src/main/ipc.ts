@@ -7,7 +7,8 @@ import { JiraService } from './jira'
 const id = z.string().uuid(); const name = z.object({ name: z.string() }); const confirmation = z.object({ confirmationName: z.string() }); const theme = z.enum(['dark', 'light', 'system'])
 const backupRepositoryId = z.number().int().positive()
 const changed = () => BrowserWindow.getAllWindows().forEach((window) => window.webContents.send('workspace-data-changed'))
-const jiraConnect = z.object({ workspaceId:z.string().uuid(), deployment:z.enum(['cloud','data-center']), baseUrl:z.string().url().max(2048), email:z.string().email().max(320).optional(), token:z.string().min(1).max(4096) })
+const integrationName = z.string().trim().min(1).max(120).optional()
+const jiraConnect = z.object({ deployment:z.enum(['cloud','data-center']), baseUrl:z.string().url().max(2048), email:z.string().email().max(320).optional(), token:z.string().min(1).max(4096), name:integrationName })
 const jiraProject = z.object({key:z.string().min(1).max(128),name:z.string().min(1).max(255)})
 export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: GitHubService, jira: JiraService): void {
   ipcMain.handle('workspaces:list', () => store.listWorkspaces())
@@ -18,8 +19,9 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   ipcMain.handle('workspaces:current', () => store.currentWorkspace())
   ipcMain.handle('workspaces:select', (_e, workspaceId) => { const result = store.selectWorkspace(id.parse(workspaceId)); changed(); return result })
   ipcMain.handle('dashboard:get', (_e, workspaceId) => { const workspace = store.getWorkspace(id.parse(workspaceId)); if (!workspace) throw new Error('Workspace not found.'); return { workspace, fixtureMode, message: fixtureMode ? 'Development fixture mode is active.' : 'Connect GitHub or Jira to start seeing actionable work.', fixtureItems: fixtureMode ? [{ title: 'Fixture: review requested', reason: 'Development-only sample data' }, { title: 'Fixture: failing check', reason: 'Development-only sample data' }] : [] } })
-  ipcMain.handle('github:connectPersonalAccessToken', async (_e, token) => { await github.connectPersonalAccessToken(z.string().min(1).max(4096).parse(token)); changed(); const integration=store.globalGitHub(); if (!integration) throw new Error('GitHub integration was not created.'); return {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))} })
+  ipcMain.handle('github:connectPersonalAccessToken', async (_e, token, name) => { await github.connectPersonalAccessToken(z.string().min(1).max(4096).parse(token),integrationName.parse(name)); changed(); const integration=store.globalGitHub(); if (!integration) throw new Error('GitHub integration was not created.'); return {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))} })
   ipcMain.handle('github:global', () => { const integration=store.globalGitHub(); return integration ? {...integration,provider:'github',repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))}:null })
+  ipcMain.handle('github:list', () => store.globalGitHubs().map((integration) => ({...integration,provider:'github' as const,repositories:integration.repositories.map((fullName)=>({fullName,selected:true}))})))
   ipcMain.handle('github:repositoryOwners', () => github.repositoryOwners())
   ipcMain.handle('github:repositoriesForOwner', async (_e, owner) => { const result=await github.repositoriesForOwner(z.string().min(1).max(100).parse(owner)); changed(); return result })
   ipcMain.handle('github:assignedRepositories', (_e, workspaceId) => store.assignedRepositories(id.parse(workspaceId)))
@@ -38,54 +40,16 @@ export function registerIpc(store: DevBoxStore, fixtureMode: boolean, github: Gi
   })
   ipcMain.handle('github:refreshGlobal', async () => { await github.refreshGlobal(); changed() })
   ipcMain.handle('github:refreshWorkspace', async (_e, workspaceId) => { await github.refreshWorkspace(id.parse(workspaceId)); changed() })
-  ipcMain.handle('github:disconnect', () => { store.removeGlobalGitHub(); changed() })
-  ipcMain.handle('github:workItems', (_e, workspaceId) => {
-    const wid = id.parse(workspaceId)
-    let items = store.workItems(wid)
-    if (items.length === 0) {
-      const assigned = store.assignedRepositories(wid)
-      if (assigned.length > 0 && assigned[0]) {
-        const repo = assigned[0]
-        const now = new Date()
-        store.replaceWorkspaceGitHubWork(wid, [
-          {
-            repository: repo,
-            title: 'Review: Improve error handling and retry mechanism',
-            reason: 'Review requested from you',
-            priority: 'high',
-            url: `https://github.com/${repo}/pull/101`,
-            updatedAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
-            kind: 'pr'
-          },
-          {
-            repository: repo,
-            title: 'Fix race condition during repository sync',
-            reason: 'CI failing on your PR',
-            priority: 'urgent',
-            url: `https://github.com/${repo}/pull/102`,
-            updatedAt: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
-            kind: 'pr'
-          },
-          {
-            repository: repo,
-            title: 'Support multi-repository views in workspace attention stream',
-            reason: 'Issue assigned to you',
-            priority: 'normal',
-            url: `https://github.com/${repo}/issues/42`,
-            updatedAt: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
-            kind: 'issue'
-          }
-        ])
-        items = store.workItems(wid)
-      }
-    }
-    return items
-  })
-  ipcMain.handle('jira:connect', async (_e, input) => { const result=await jira.connect(jiraConnect.parse(input)); changed(); const integration=result.integration; if(!integration) throw new Error('Jira integration was not created.'); return {integration:{id:integration.id,provider:'jira' as const,state:integration.state,displayName:integration.displayName,lastSyncedAt:integration.lastSyncedAt,lastError:integration.lastError,deployment:integration.deployment,baseUrl:integration.baseUrl,projects:integration.projects},projects:result.projects} })
+  ipcMain.handle('github:disconnect', (_e, integrationId) => { store.removeGlobalGitHub(integrationId === undefined ? undefined : id.parse(integrationId)); changed() })
+  ipcMain.handle('github:workItems', (_e, workspaceId) => store.workItems(id.parse(workspaceId)))
+  ipcMain.handle('jira:connect', async (_e, input) => { const result=await jira.connect(jiraConnect.parse(input)); changed(); const integration=result.integration; return {integration:{...integration,provider:'jira' as const},projects:result.projects} })
+  ipcMain.handle('jira:global', () => { const integration=store.globalJira(); return integration ? {...integration,provider:'jira' as const}:null })
+  ipcMain.handle('jira:list', () => store.globalJiras().map((integration) => ({...integration,provider:'jira' as const})))
+  ipcMain.handle('jira:projects', () => jira.availableProjects())
   ipcMain.handle('jira:get', (_e, workspaceId) => { const integration=store.jiraIntegration(id.parse(workspaceId)); return integration ? {id:integration.id,provider:'jira' as const,state:integration.state,displayName:integration.displayName,lastSyncedAt:integration.lastSyncedAt,lastError:integration.lastError,deployment:integration.deployment,baseUrl:integration.baseUrl,projects:integration.projects}:null })
-  ipcMain.handle('jira:setProjects', async (_e, workspaceId, projects) => { const workspace=id.parse(workspaceId); store.setJiraProjects(workspace,z.array(jiraProject).min(1).max(100).parse(projects)); await jira.refresh(workspace); changed() })
+  ipcMain.handle('jira:setProject', async (_e, workspaceId, project) => { const workspace=id.parse(workspaceId); store.setJiraProject(workspace,jiraProject.parse(project)); await jira.refresh(workspace); changed() })
   ipcMain.handle('jira:refresh', async (_e, workspaceId) => { await jira.refresh(id.parse(workspaceId)); changed() })
-  ipcMain.handle('jira:disconnect', (_e, workspaceId) => { store.removeJira(id.parse(workspaceId)); changed() })
+  ipcMain.handle('jira:disconnect', (_e, integrationId) => { store.removeGlobalJira(integrationId === undefined ? undefined : id.parse(integrationId)); changed() })
   ipcMain.handle('jira:workItems', (_e, workspaceId) => store.jiraWorkItems(id.parse(workspaceId)))
   ipcMain.handle('backups:status', () => store.backupStatus())
   ipcMain.handle('backups:repositories', () => github.backupRepositories())

@@ -1,4 +1,4 @@
-import type { BackupRepository, BackupStatus, DevBoxApi, GitHubIntegrationSummary, GitHubRepositoryOwner, Theme, Workspace, WorkspaceSummary, WorkItem } from '../shared/contracts'
+import type { BackupRepository, BackupStatus, DevBoxApi, GitHubIntegrationSummary, GitHubRepositoryOwner, GlobalJiraIntegrationSummary, JiraIntegrationSummary, JiraProject, Theme, Workspace, WorkspaceSummary, WorkItem } from '../shared/contracts'
 
 type BrowserState = { workspaces: Workspace[]; currentId: string; themes: Record<string, Theme> }
 const KEY = 'devbox:browser-preview:v1'
@@ -11,8 +11,6 @@ const remote = async <T>(path:string, init?:RequestInit):Promise<T>=>{const resp
 
 export function createBrowserDevboxApi(): DevBoxApi {
   document.documentElement.dataset.devboxPreview = 'true'
-  const disablePreviewOnlyJiraConnect = (): void => document.querySelectorAll<HTMLButtonElement>('.token-form:has(select) button[type="submit"]').forEach((button) => { button.disabled = true; button.title = 'Jira connections are available only in the DevBox desktop app.' })
-  new MutationObserver(disablePreviewOnlyJiraConnect).observe(document.documentElement, { childList: true, subtree: true })
   return {
     version:'1',
     workspaces:{
@@ -26,12 +24,13 @@ export function createBrowserDevboxApi(): DevBoxApi {
     },
     dashboard:{get:async(workspaceId)=>remote(`/dashboard?workspaceId=${encodeURIComponent(workspaceId)}`)},
     github:{
-      connectPersonalAccessToken:async(token)=>{
-        const result=await remote<GitHubIntegrationSummary>('/github/connect',{method:'POST',body:JSON.stringify({token})});
+      connectPersonalAccessToken:async(token,name)=>{
+        const result=await remote<GitHubIntegrationSummary>('/github/connect',{method:'POST',body:JSON.stringify({token,name})});
         listeners.forEach((listener)=>listener());
         return result
       },
       global:async()=>remote<GitHubIntegrationSummary|null>('/github/global'),
+      list:async()=>remote<GitHubIntegrationSummary[]>('/github/list'),
       repositoryOwners:async()=>remote<GitHubRepositoryOwner[]>('/github/repository-owners'),
       repositoriesForOwner:async(owner)=>{ const result=await remote<string[]>('/github/repositories-for-owner',{method:'POST',body:JSON.stringify({owner})}); listeners.forEach((listener)=>listener()); return result },
       assignedRepositories:async(workspaceId)=>remote<string[]>(`/github/assigned?workspaceId=${encodeURIComponent(workspaceId)}`),
@@ -47,13 +46,23 @@ export function createBrowserDevboxApi(): DevBoxApi {
         await remote('/github/refresh-workspace',{method:'POST',body:JSON.stringify({workspaceId})});
         listeners.forEach((listener)=>listener())
       },
-      disconnect:async()=>{
-        await remote('/github/disconnect',{method:'POST'});
+      disconnect:async(id)=>{
+        await remote('/github/disconnect',{method:'POST',body:JSON.stringify({id})});
         listeners.forEach((listener)=>listener())
       },
       workItems:async(workspaceId)=>remote<WorkItem[]>(`/github/work-items?workspaceId=${encodeURIComponent(workspaceId)}`)
     },
-    jira:{connect:async()=>{throw new Error('Jira connections are available only in the DevBox desktop app.');},get:async()=>null,setProjects:async()=>undefined,refresh:async()=>undefined,disconnect:async()=>undefined,workItems:async()=>[]},
+    jira:{
+      connect:async(input)=>{const result=await remote<{integration:GlobalJiraIntegrationSummary;projects:JiraProject[]}>('/jira/connect',{method:'POST',body:JSON.stringify(input)});listeners.forEach((listener)=>listener());return result},
+      global:async()=>remote<GlobalJiraIntegrationSummary|null>('/jira/global'),
+      list:async()=>remote<GlobalJiraIntegrationSummary[]>('/jira/list'),
+      projects:async()=>remote<JiraProject[]>('/jira/projects'),
+      get:async(workspaceId)=>remote<JiraIntegrationSummary|null>(`/jira/workspace?workspaceId=${encodeURIComponent(workspaceId)}`),
+      setProject:async(workspaceId,project)=>{await remote('/jira/project',{method:'POST',body:JSON.stringify({workspaceId,project})});listeners.forEach((listener)=>listener())},
+      refresh:async(workspaceId)=>{await remote('/jira/refresh',{method:'POST',body:JSON.stringify({workspaceId})});listeners.forEach((listener)=>listener())},
+      disconnect:async(id)=>{await remote('/jira/disconnect',{method:'POST',body:JSON.stringify({id})});listeners.forEach((listener)=>listener())},
+      workItems:async(workspaceId)=>remote<WorkItem[]>(`/jira/work-items?workspaceId=${encodeURIComponent(workspaceId)}`)
+    },
     backups:{status:async():Promise<BackupStatus>=>({repository:null,lastBackedUpAt:null,lastCommitUrl:null,lastError:null,dirty:false}),repositories:async():Promise<BackupRepository[]>=>[],connectToken:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},configure:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},run:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');},restoreLatest:async()=>{throw new Error('GitHub backups are available only in the DevBox desktop app.');}},
     preferences:{getTheme:async(workspaceId)=>read().themes[workspaceId]??'dark',setTheme:async(workspaceId,theme)=>{const state=read(); state.themes[workspaceId]=theme; write(state)}},
     links:{openExternal:async(url)=>{window.open(url,'_blank','noopener,noreferrer')}},
